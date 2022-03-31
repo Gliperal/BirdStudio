@@ -2,7 +2,6 @@
 using System.Windows.Input;
 using System.Windows.Media;
 using ICSharpCode.AvalonEdit;
-using ICSharpCode.AvalonEdit.Document;
 
 namespace BirdStudioRefactor
 {
@@ -10,6 +9,7 @@ namespace BirdStudioRefactor
     {
         private TASEditor parent;
         private TextEditor component;
+        private string text;
 
         public TASEditorSection(string initialText, TASEditor parent)
         {
@@ -26,13 +26,15 @@ namespace BirdStudioRefactor
             component.TextArea.PreviewKeyDown += Editor_KeyDown;
             component.TextArea.TextEntering += Editor_TextEntering;
             component.TextChanged += Editor_TextChanged;
-            // TODO still need to block copy/paste and drag&drop text (monitor textchanged and revert changes?) and undo/redo (UndoStack.ClearAll())
-            component.AppendText(initialText);
+            text = initialText;
+            component.Text = initialText;
+            // Disable native undo/redo
+            component.Document.UndoStack.SizeLimit = 0;
         }
 
         public void performEdit(EditHistoryItem edit)
         {
-            string text = component.Text;
+            text = component.Text;
             // TODO Better way to perform insertions/deletions on the avalon editor?
             // TextLocation deleteStart = component.Document.GetLocation(pos);
             // TextLocation deleteEnd = component.Document.GetLocation(pos + deleteLength);
@@ -43,7 +45,7 @@ namespace BirdStudioRefactor
 
         public void revertEdit(EditHistoryItem edit)
         {
-            string text = component.Text;
+            text = component.Text;
             text = text.Substring(0, edit.pos) + edit.textRemoved + text.Substring(edit.pos + edit.textInserted.Length);
             component.Text = text;
             component.CaretOffset = edit.cursorPosInitial;
@@ -57,7 +59,7 @@ namespace BirdStudioRefactor
             // TODO Reformat to fit tas style and obtain new pos/deleteLength/insert
             EditHistoryItem edit = new EditHistoryItem {
                 pos = pos,
-                textRemoved = component.Document.Text.Substring(pos, deleteLength),
+                textRemoved = text.Substring(pos, deleteLength),
                 textInserted = insert,
                 cursorPosInitial = component.CaretOffset,
                 cursorPosFinal = pos + insert.Length
@@ -103,7 +105,19 @@ namespace BirdStudioRefactor
 
         private void Editor_TextChanged(object sender, System.EventArgs e)
         {
-            // TODO Catch copy/paste and undo/redo changes and revert them
+            // Catch copy/paste and drag&drop changes and include them in the edit history
+            if (component.Text != text)
+            {
+                parent.editPerformed(this, new EditHistoryItem
+                {
+                    pos = 0,
+                    textRemoved = text,
+                    textInserted = component.Text,
+                    cursorPosInitial = 0, // TODO
+                    cursorPosFinal = component.CaretOffset
+                });
+                text = component.Text;
+            }
         }
 
         public TextEditor getComponent()

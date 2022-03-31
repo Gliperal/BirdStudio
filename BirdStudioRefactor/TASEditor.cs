@@ -59,6 +59,7 @@ namespace BirdStudioRefactor
     }
 }
 
+// undo/redo: https://stackoverflow.com/questions/1900450/wpf-how-to-prevent-a-control-from-stealing-a-key-gesture
 // Can maybe use avalonEdit code folding to get the correct line numbers?
 // Use UndoStack.ClearAll() after every change to prevent undo/redo
 // When changing components: component.Focus();
