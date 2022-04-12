@@ -10,4 +10,12 @@
     <PackageReference Include="AvalonEdit" Version="6.1.3.50" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EditorConfigFiles Remove="C:\Users\Gliperal\Desktop\code\BirdStudioRefactor\BirdStudioRefactor\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="C:\Users\Gliperal\Desktop\code\BirdStudioRefactor\BirdStudioRefactor\.editorconfig" />
+  </ItemGroup>
+
 </Project>

@@ -11,7 +11,7 @@ namespace BirdStudioRefactor
     {
         private MainWindow window;
         private string filePath;
-        private bool unsavedChanges = false; // TODO set true on change
+        private bool unsavedChanges = false;
 
         public FileManager(MainWindow window)
         {
@@ -33,17 +33,29 @@ namespace BirdStudioRefactor
                 return name.Substring(0, i);
         }
 
-        private void _setTasFile(string path)
-        {
-            if (path == null)
-                window.Title = "Bird Studio";
-            else
-                window.Title = (unsavedChanges ? "*" : "") + filePathToFileName(path) + " - Bird Studio";
-            filePath = path;
-        }
-
         protected abstract void _importFromFile(string contents);
         protected abstract string _exportToFile();
+
+        private void _updateWindowTitle()
+        {
+            if (filePath == null)
+                window.Title = "Bird Studio";
+            else
+                window.Title = (unsavedChanges ? "*" : "") + filePathToFileName(filePath) + " - Bird Studio";
+        }
+
+        private void _setTasFile(string path)
+        {
+            filePath = path;
+            unsavedChanges = false;
+            _updateWindowTitle();
+        }
+
+        protected void fileChanged()
+        {
+            unsavedChanges = true;
+            _updateWindowTitle();
+        }
 
         public bool permissionToClose()
         {
@@ -124,8 +136,8 @@ namespace BirdStudioRefactor
             }
             // tas file
             string tas = File.ReadAllText(file);
-            _importFromFile(tas);
             _setTasFile(file);
+            _importFromFile(tas);
         }
 
         public bool saveAs(string file)
@@ -144,7 +156,6 @@ namespace BirdStudioRefactor
             // TODO test user rejects dialogue box
             string tas = _exportToFile();
             File.WriteAllText(file, tas);
-            unsavedChanges = false;
             _setTasFile(file);
             return true;
         }

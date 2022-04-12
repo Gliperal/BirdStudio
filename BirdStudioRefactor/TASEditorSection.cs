@@ -9,7 +9,7 @@ namespace BirdStudioRefactor
     {
         private TASEditor parent;
         private TextEditor component;
-        private string text;
+        public string text; // TODO private again
 
         public TASEditorSection(string initialText, TASEditor parent)
         {

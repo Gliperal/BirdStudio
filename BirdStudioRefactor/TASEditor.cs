@@ -31,6 +31,7 @@ namespace BirdStudioRefactor
                 editHistory.RemoveRange(editHistoryLocation, editHistory.Count - editHistoryLocation);
             editHistory.Add(edit);
             editHistoryLocation++;
+            fileChanged();
         }
 
         public bool canUndo()
@@ -46,6 +47,7 @@ namespace BirdStudioRefactor
             sections[edit.sectionIndex].revertEdit(edit);
             editHistoryLocation--;
             // TODO change focus to sections[edit.sectionIndex]
+            fileChanged();
         }
 
         public bool canRedo()
@@ -59,6 +61,7 @@ namespace BirdStudioRefactor
             sections[edit.sectionIndex].performEdit(edit);
             editHistoryLocation++;
             // TODO change focus to sections[edit.sectionIndex]
+            fileChanged();
         }
 
         private void _clearUndoStack()
@@ -73,7 +76,7 @@ namespace BirdStudioRefactor
                 tas = DEFAULT_FILE_TEXT;
             sections = new List<TASEditorSection>();
             panel.Children.Clear();
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 1; i++)
             {
                 TASEditorSection section = new TASEditorSection(tas, this);
                 panel.Children.Add(section.getComponent());
@@ -85,7 +88,7 @@ namespace BirdStudioRefactor
 
         protected override string _exportToFile()
         {
-            return "TODO"; // TODO
+            return sections[0].text;
         }
     }
 }
