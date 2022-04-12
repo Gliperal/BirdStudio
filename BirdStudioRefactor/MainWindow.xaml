@@ -8,6 +8,10 @@
         mc:Ignorable="d"
         Title="birb" Height="800" Width="300">
     <Window.CommandBindings>
+        <CommandBinding Command="New" Executed="NewCommand_Execute" />
+        <CommandBinding Command="Open" Executed="OpenCommand_Execute" />
+        <CommandBinding Command="Save" Executed="SaveCommand_Execute" />
+        <CommandBinding Command="SaveAs" Executed="SaveAsCommand_Execute" />
         <CommandBinding
             Command="commands:CustomCommands.Undo"
             Executed="UndoCommand_Execute"
@@ -25,13 +29,19 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <Menu Grid.Row="0">
+            <MenuItem Header="_File">
+                <MenuItem Header="_New" Command="New" />
+                <MenuItem Header="_Open" Command="Open" />
+                <MenuItem Header="_Save" Command="Save" />
+                <MenuItem Header="Save _As" Command="SaveAs" />
+            </MenuItem>
             <MenuItem Header="_Edit">
                 <MenuItem Header="_Undo" Command="commands:CustomCommands.Undo" />
                 <MenuItem Header="_Redo" Command="commands:CustomCommands.Redo" />
             </MenuItem>
         </Menu>
         <ScrollViewer Grid.Row="1">
-            <StackPanel x:Name="testPanel" />
+            <StackPanel x:Name="editorBase" />
         </ScrollViewer>
     </Grid>
 </Window>

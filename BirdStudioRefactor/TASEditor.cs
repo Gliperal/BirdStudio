@@ -1,28 +1,22 @@
-﻿using System.Windows;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using System.Collections.Generic;
 
 namespace BirdStudioRefactor
 {
-    class TASEditor
+    class TASEditor : FileManager
     {
+        private const string DEFAULT_FILE_TEXT = ">stage Twin Tree Village\n>rerecords 0\n\n  29";
+
         private StackPanel panel;
-        private Point cursor;
         private List<TASEditorSection> sections; // TODO convert from list into tree (may need to change index to some kind of id too)
         private List<EditHistoryItem> editHistory = new List<EditHistoryItem>();
         private int editHistoryLocation = 0;
+        private bool tasEditedSinceLastWatch = true;
 
-        public TASEditor(StackPanel panel)
+        public TASEditor(MainWindow window, StackPanel panel) : base(window)
         {
             this.panel = panel;
-            sections = new List<TASEditorSection>();
-            for (int i = 0; i < 5; i++)
-            {
-                TASEditorSection section = new TASEditorSection(">stage Twin Tree Village\n>rerecords 0\n\n  29", this);
-                panel.Children.Add(section.getComponent());
-                sections.Add(section);
-                cursor = new Point(0, 0);
-            }
+            neww();
         }
 
         public void editPerformed(TASEditorSection section, EditHistoryItem edit)
@@ -39,22 +33,59 @@ namespace BirdStudioRefactor
             editHistoryLocation++;
         }
 
+        public bool canUndo()
+        {
+            return editHistoryLocation > 0;
+        }
+
         public void undo()
         {
-            if (editHistoryLocation == 0)
+            if (!canUndo())
                 return;
             EditHistoryItem edit = editHistory[editHistoryLocation - 1];
             sections[edit.sectionIndex].revertEdit(edit);
             editHistoryLocation--;
+            // TODO change focus to sections[edit.sectionIndex]
+        }
+
+        public bool canRedo()
+        {
+            return editHistoryLocation < editHistory.Count;
         }
 
         public void redo()
         {
-            if (editHistoryLocation == editHistory.Count)
-                return;
             EditHistoryItem edit = editHistory[editHistoryLocation];
             sections[edit.sectionIndex].performEdit(edit);
             editHistoryLocation++;
+            // TODO change focus to sections[edit.sectionIndex]
+        }
+
+        private void _clearUndoStack()
+        {
+            editHistory = new List<EditHistoryItem>();
+            editHistoryLocation = 0;
+        }
+
+        protected override void _importFromFile(string tas)
+        {
+            if (tas == null)
+                tas = DEFAULT_FILE_TEXT;
+            sections = new List<TASEditorSection>();
+            panel.Children.Clear();
+            for (int i = 0; i < 5; i++)
+            {
+                TASEditorSection section = new TASEditorSection(tas, this);
+                panel.Children.Add(section.getComponent());
+                sections.Add(section);
+            }
+            tasEditedSinceLastWatch = true;
+            _clearUndoStack();
+        }
+
+        protected override string _exportToFile()
+        {
+            return "TODO"; // TODO
         }
     }
 }
