@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BirdStudioRefactor"
-        xmlns:commands="clr-namespace:BirdStudio.Commands"
+        xmlns:commands="clr-namespace:BirdStudioRefactor.Commands"
         mc:Ignorable="d"
         Title="birb" Height="800" Width="300">
     <Window.CommandBindings>
@@ -38,6 +38,11 @@
             <MenuItem Header="_Edit">
                 <MenuItem Header="_Undo" Command="commands:CustomCommands.Undo" />
                 <MenuItem Header="_Redo" Command="commands:CustomCommands.Redo" />
+            </MenuItem>
+            <MenuItem Header="_Branch">
+                <MenuItem Header="_New Branch at Cursor" Command="commands:CustomCommands.NewBranch" />
+                <MenuItem Header="_Add Branch" Command="commands:CustomCommands.AddBranch" />
+                <MenuItem Header="_Remove Branch" Command="commands:CustomCommands.RemoveBranch" />
             </MenuItem>
         </Menu>
         <ScrollViewer Grid.Row="1">
