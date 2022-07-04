@@ -1,5 +1,7 @@
 ﻿using System.Windows.Controls;
 using System.Collections.Generic;
+using System.Windows;
+using System.Windows.Input;
 
 namespace BirdStudioRefactor
 {
@@ -8,7 +10,7 @@ namespace BirdStudioRefactor
         private const string DEFAULT_FILE_TEXT = ">stage Twin Tree Village\n>rerecords 0\n\n  29";
 
         private StackPanel panel;
-        private List<TASEditorSection> sections; // TODO convert from list into tree (may need to change index to some kind of id too)
+        private Branch masterBranch;
         private List<EditHistoryItem> editHistory = new List<EditHistoryItem>();
         private int editHistoryLocation = 0;
         private bool tasEditedSinceLastWatch = true;
@@ -19,19 +21,21 @@ namespace BirdStudioRefactor
             neww();
         }
 
-        public void editPerformed(TASEditorSection section, EditHistoryItem edit)
+        public void editPerformed(IEditable target, EditHistoryItem edit)
         {
-            for (int i = 0; i < sections.Count; i++)
-                if (sections[i] == section)
-                {
-                    edit.sectionIndex = i;
-                    break;
-                }
+            List<int> id = masterBranch.findEditTargetID(target);
+            edit.targetID = id;
             if (editHistoryLocation < editHistory.Count)
                 editHistory.RemoveRange(editHistoryLocation, editHistory.Count - editHistoryLocation);
             editHistory.Add(edit);
             editHistoryLocation++;
             fileChanged();
+        }
+
+        public void requestEdit(IEditable target, EditHistoryItem edit)
+        {
+            target.performEdit(edit);
+            editPerformed(target, edit);
         }
 
         public bool canUndo()
@@ -44,7 +48,8 @@ namespace BirdStudioRefactor
             if (!canUndo())
                 return;
             EditHistoryItem edit = editHistory[editHistoryLocation - 1];
-            sections[edit.sectionIndex].revertEdit(edit);
+            IEditable target = masterBranch.getEditable(edit.targetID);
+            target.revertEdit(edit);
             editHistoryLocation--;
             // TODO change focus to sections[edit.sectionIndex]
             fileChanged();
@@ -58,7 +63,8 @@ namespace BirdStudioRefactor
         public void redo()
         {
             EditHistoryItem edit = editHistory[editHistoryLocation];
-            sections[edit.sectionIndex].performEdit(edit);
+            IEditable target = masterBranch.getEditable(edit.targetID);
+            target.performEdit(edit);
             editHistoryLocation++;
             // TODO change focus to sections[edit.sectionIndex]
             fileChanged();
@@ -70,25 +76,52 @@ namespace BirdStudioRefactor
             editHistoryLocation = 0;
         }
 
+        public void newBranch()
+        {
+            IInputElement focus = FocusManager.GetFocusedElement(panel);
+            // TODO
+        }
+
+        public void addBranch()
+        {
+            IInputElement focus = FocusManager.GetFocusedElement(panel);
+            // TODO
+        }
+
+        public void cycleBranch()
+        {
+            IInputElement focusedElement = FocusManager.GetFocusedElement(panel);
+            // This approach kinda sucks since we have to search for the target id twice, but w/e
+            List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.BranchGroup);
+            if (id == null)
+                return;
+            BranchNode target = (BranchNode) masterBranch.getEditable(id);
+            EditHistoryItem edit = target.cycleBranchEdit();
+            requestEdit(target, edit);
+        }
+
+        public void removeBranch()
+        {
+            IInputElement focus = FocusManager.GetFocusedElement(panel);
+            // TODO
+        }
+
         protected override void _importFromFile(string tas)
         {
             if (tas == null)
                 tas = DEFAULT_FILE_TEXT;
-            sections = new List<TASEditorSection>();
+            masterBranch = Branch.fromFile(tas, this);
+            // TODO Catch FormatExceptions
             panel.Children.Clear();
-            for (int i = 0; i < 1; i++)
-            {
-                TASEditorSection section = new TASEditorSection(tas, this);
-                panel.Children.Add(section.getComponent());
-                sections.Add(section);
-            }
+            foreach (UIElement component in masterBranch.getComponents())
+                panel.Children.Add(component);
             tasEditedSinceLastWatch = true;
             _clearUndoStack();
         }
 
         protected override string _exportToFile()
         {
-            return sections[0].text;
+            return masterBranch.toFile();
         }
     }
 }

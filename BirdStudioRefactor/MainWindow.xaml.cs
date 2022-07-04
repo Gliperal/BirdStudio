@@ -55,5 +55,25 @@ namespace BirdStudioRefactor
         {
             e.CanExecute = editor.canRedo();
         }
+
+        private void NewBranch_Execute(object sender, RoutedEventArgs e)
+        {
+            editor.newBranch();
+        }
+
+        private void AddBranch_Execute(object sender, RoutedEventArgs e)
+        {
+            editor.addBranch();
+        }
+
+        private void CycleBranch_Execute(object sender, RoutedEventArgs e)
+        {
+            editor.cycleBranch();
+        }
+
+        private void RemoveBranch_Execute(object sender, RoutedEventArgs e)
+        {
+            editor.removeBranch();
+        }
     }
 }

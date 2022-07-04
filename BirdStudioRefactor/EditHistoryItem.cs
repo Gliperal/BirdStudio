@@ -1,12 +1,34 @@
-﻿namespace BirdStudioRefactor
+﻿using System.Collections.Generic;
+
+namespace BirdStudioRefactor
 {
+    public enum EditType
+    {
+        Unknown,
+        ModifyText,
+        AddBranch,
+        ChangeActiveBranch,
+        RemoveBranch,
+    };
+
     class EditHistoryItem
     {
-        public int sectionIndex;
+        public EditType type;
+        public List<int> targetID;
+
+        // text edits
         public int pos;
         public string textRemoved;
         public string textInserted;
         public int cursorPosInitial;
         public int cursorPosFinal;
+
+        // branch edits
+        public string branchName1;
+        public string branchName2;
+        public int activeBranchInitial;
+        public int activeBranchFinal;
+        public int branchIndex;
+        public Branch copy;
     }
 }

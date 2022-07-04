@@ -5,7 +5,7 @@ using ICSharpCode.AvalonEdit;
 
 namespace BirdStudioRefactor
 {
-    class TASEditorSection
+    class TASEditorSection : IEditable
     {
         private TASEditor parent;
         private TextEditor component;
@@ -58,14 +58,14 @@ namespace BirdStudioRefactor
         {
             // TODO Reformat to fit tas style and obtain new pos/deleteLength/insert
             EditHistoryItem edit = new EditHistoryItem {
+                type = EditType.ModifyText,
                 pos = pos,
                 textRemoved = text.Substring(pos, deleteLength),
                 textInserted = insert,
                 cursorPosInitial = component.CaretOffset,
                 cursorPosFinal = pos + insert.Length
             };
-            performEdit(edit);
-            parent.editPerformed(this, edit);
+            parent.requestEdit(this, edit);
         }
 
         private void Editor_KeyDown(object sender, KeyEventArgs e)
@@ -110,6 +110,7 @@ namespace BirdStudioRefactor
             {
                 parent.editPerformed(this, new EditHistoryItem
                 {
+                    type = EditType.ModifyText,
                     pos = 0,
                     textRemoved = text,
                     textInserted = component.Text,
