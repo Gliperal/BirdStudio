@@ -13,20 +13,15 @@ namespace BirdStudioRefactor
         BranchGroup,
     }
 
-    class BranchNode : IEditable
-    {
-        public TASEditorSection inputs;
+    interface IBranchSection : IEditable { }
 
+    class BranchGroup : IBranchSection
+    {
         public TextBlock headerComponent;
         public List<Branch> branches;
         public int activeBranch;
 
-        public BranchNode(TASEditorSection inputs)
-        {
-            this.inputs = inputs;
-        }
-
-        public BranchNode(List<Branch> branches)
+        public BranchGroup(List<Branch> branches)
         {
             this.branches = branches;
             this.activeBranch = 0;
@@ -55,9 +50,6 @@ namespace BirdStudioRefactor
                     // TODO
                     // Make sure to update active branch
                     return;
-                case EditType.ModifyText:
-                    inputs.performEdit(edit);
-                    break;
                 default:
                     throw new Exception("Edit type not supported.");
             }
@@ -79,9 +71,6 @@ namespace BirdStudioRefactor
                     // TODO
                     // Make sure to update active branch
                     return;
-                case EditType.ModifyText:
-                    inputs.revertEdit(edit);
-                    break;
                 default:
                     throw new Exception("Edit type not supported.");
             }
@@ -116,9 +105,7 @@ namespace BirdStudioRefactor
     class Branch : IEditable
     {
         private string name;
-        // TODO Can maybe remove inputs from BranchNode, making it just
-        // BranchGroup, and making this List<IEditable>
-        List<BranchNode> nodes = new List<BranchNode>();
+        List<IBranchSection> nodes = new List<IBranchSection>();
 
         private Branch() {}
 
@@ -129,7 +116,7 @@ namespace BirdStudioRefactor
             return text;
         }
 
-        private static BranchNode _makeBranchNode(string firstBranch, ref string text, TASEditor parent)
+        private static BranchGroup _makeBranchNode(string firstBranch, ref string text, TASEditor parent)
         {
             List<Branch> branches = new List<Branch>();
             Branch branch = new Branch { name = firstBranch };
@@ -142,7 +129,7 @@ namespace BirdStudioRefactor
                 {
                     string inputs = text.Substring(0, lineStart);
                     inputs = removeSingleNewline(inputs);
-                    branch.nodes.Add(new BranchNode(new TASEditorSection(inputs, parent)));
+                    branch.nodes.Add(new TASEditorSection(inputs, parent));
                     int nextLineStart = lineStart + line.Length;
                     if (nextLineStart < text.Length)
                         nextLineStart++; // skip past newline unless end of file
@@ -160,7 +147,7 @@ namespace BirdStudioRefactor
                     else if(command == ">endbranch")
                     {
                         branches.Add(branch);
-                        return new BranchNode(branches);
+                        return new BranchGroup(branches);
                     }
                 }
                 else
@@ -176,7 +163,7 @@ namespace BirdStudioRefactor
         {
             text = text.Replace("\r\n", "\n");
             text = text + "\n>endbranch";
-            BranchNode node = _makeBranchNode("", ref text, parent);
+            BranchGroup node = _makeBranchNode("", ref text, parent);
             if (text.Length > 0)
                 throw new FormatException("Unmatched >endbranch");
             return node.branches[0];
@@ -185,19 +172,20 @@ namespace BirdStudioRefactor
         public string toFile()
         {
             string contents = "";
-            foreach (BranchNode node in nodes)
+            foreach (IEditable node in nodes)
             {
-                if (node.inputs != null)
-                    contents += "\n" + node.inputs.text;
+                if (node is TASEditorSection)
+                    contents += "\n" + ((TASEditorSection)node).text;
                 else
                 {
-                    for (int i = 0; i < node.branches.Count; i++)
+                    List<Branch> branches = ((BranchGroup)node).branches;
+                    for (int i = 0; i < branches.Count; i++)
                     {
                         if (i == 0)
-                            contents += "\n>startbranch " + node.branches[0].name;
+                            contents += "\n>startbranch " + branches[0].name;
                         else
-                            contents += "\n>branch " + node.branches[0].name;
-                        contents += "\n" + node.branches[i].toFile();
+                            contents += "\n>branch " + branches[0].name;
+                        contents += "\n" + branches[i].toFile();
                     }
                     contents += "\n>endbranch";
                 }
@@ -213,16 +201,17 @@ namespace BirdStudioRefactor
         public List<UIElement> getComponents()
         {
             List<UIElement> components = new List<UIElement>();
-            foreach (BranchNode node in nodes)
+            foreach (IEditable node in nodes)
             {
-                if (node.inputs != null)
-                    components.Add(node.inputs.getComponent());
+                if (node is TASEditorSection)
+                    components.Add(((TASEditorSection)node).getComponent());
                 else
                 {
+                    BranchGroup branchGroup = (BranchGroup)node;
                     // TODO better UI style
                     components.Add(new Separator());
-                    components.Add(node.headerComponent);
-                    components.AddRange(node.branches[node.activeBranch].getComponents());
+                    components.Add(branchGroup.headerComponent);
+                    components.AddRange(branchGroup.branches[branchGroup.activeBranch].getComponents());
                     components.Add(new Separator());
                 }
             }
@@ -233,18 +222,20 @@ namespace BirdStudioRefactor
         {
             for (int i = 0; i < nodes.Count; i++)
             {
-                if (nodes[i].inputs != null)
+                if (nodes[i] is TASEditorSection)
                 {
-                    if (nodes[i].inputs.getComponent().TextArea == element)
+                    if (((TASEditorSection)nodes[i]).getComponent().TextArea == element)
                     {
-                        target = nodes[i].inputs;
+                        target = nodes[i];
                         return new List<int> { i };
                     }
                 }
                 else
-                    for (int j = 0; j < nodes[i].branches.Count; j++)
+                {
+                    List<Branch> branches = ((BranchGroup)nodes[i]).branches;
+                    for (int j = 0; j < branches.Count; j++)
                     {
-                        List<int> id = nodes[i].branches[j]._getEditable(element, ref target);
+                        List<int> id = branches[j]._getEditable(element, ref target);
                         if (id != null)
                         {
                             id.Insert(0, i);
@@ -252,6 +243,7 @@ namespace BirdStudioRefactor
                             return id;
                         }
                     }
+                }
             }
             return null;
         }
@@ -262,13 +254,14 @@ namespace BirdStudioRefactor
                 return new List<int>();
             for (int i = 0; i < nodes.Count; i++)
             {
-                if (nodes[i] == target || nodes[i].inputs == target)
+                if (nodes[i] == target)
                     return new List<int> { i };
-                else if (nodes[i].inputs == null)
+                else if (nodes[i] is BranchGroup)
                 {
-                    for (int j = 0; j < nodes[i].branches.Count; j++)
+                    List<Branch> branches = ((BranchGroup)nodes[i]).branches;
+                    for (int j = 0; j < branches.Count; j++)
                     {
-                        List<int> id = nodes[i].branches[j].findEditTargetID(target);
+                        List<int> id = branches[j].findEditTargetID(target);
                         if (id != null)
                         {
                             id.Insert(0, i);
@@ -299,7 +292,7 @@ namespace BirdStudioRefactor
                     // TODO If branch group selected, then active branch inputs
                     return id;
                 case EditableTargetType.BranchGroup:
-                    if (target is BranchNode)
+                    if (target is BranchGroup)
                         return id;
                     if (id.Count < 2)
                         return null;
@@ -318,7 +311,8 @@ namespace BirdStudioRefactor
             {
                 int nodeIndex = id[i];
                 int branchIndex = id[i+1];
-                branch = branch.nodes[nodeIndex].branches[branchIndex];
+                BranchGroup branchGroup = (BranchGroup)branch.nodes[nodeIndex];
+                branch = branchGroup.branches[branchIndex];
             }
             if (i == id.Count)
                 return branch;
@@ -334,7 +328,7 @@ namespace BirdStudioRefactor
                 case EditType.RemoveBranch:
                 case EditType.ChangeActiveBranch:
                     throw new NotImplementedException();
-                    // TODO should send execution to parent element which is an actual BranchNode
+                    // TODO should send execution to parent element which is an actual BranchGroup
                 default:
                     throw new Exception("No other type of edit should reach this point.");
             }

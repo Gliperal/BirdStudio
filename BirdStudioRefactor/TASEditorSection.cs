@@ -5,7 +5,8 @@ using ICSharpCode.AvalonEdit;
 
 namespace BirdStudioRefactor
 {
-    class TASEditorSection : IEditable
+    // TODO Maybe rename this to something like InputsBlock or InputsSection
+    class TASEditorSection : IBranchSection
     {
         private TASEditor parent;
         private TextEditor component;

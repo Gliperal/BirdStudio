@@ -36,6 +36,17 @@ namespace BirdStudioRefactor
         {
             target.performEdit(edit);
             editPerformed(target, edit);
+            if (edit.type != EditType.ModifyText)
+                reloadComponents();
+        }
+
+        private void reloadComponents()
+        {
+            panel.Children.Clear();
+            foreach (UIElement component in masterBranch.getComponents())
+                panel.Children.Add(component);
+            // TODO Maintain scroll position
+            // TODO re-highlight active line?
         }
 
         public bool canUndo()
@@ -51,6 +62,8 @@ namespace BirdStudioRefactor
             IEditable target = masterBranch.getEditable(edit.targetID);
             target.revertEdit(edit);
             editHistoryLocation--;
+            if (edit.type != EditType.ModifyText)
+                reloadComponents();
             // TODO change focus to sections[edit.sectionIndex]
             fileChanged();
         }
@@ -66,6 +79,8 @@ namespace BirdStudioRefactor
             IEditable target = masterBranch.getEditable(edit.targetID);
             target.performEdit(edit);
             editHistoryLocation++;
+            if (edit.type != EditType.ModifyText)
+                reloadComponents();
             // TODO change focus to sections[edit.sectionIndex]
             fileChanged();
         }
@@ -95,9 +110,10 @@ namespace BirdStudioRefactor
             List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.BranchGroup);
             if (id == null)
                 return;
-            BranchNode target = (BranchNode) masterBranch.getEditable(id);
+            BranchGroup target = (BranchGroup) masterBranch.getEditable(id);
             EditHistoryItem edit = target.cycleBranchEdit();
             requestEdit(target, edit);
+            reloadComponents();
         }
 
         public void removeBranch()
@@ -112,9 +128,7 @@ namespace BirdStudioRefactor
                 tas = DEFAULT_FILE_TEXT;
             masterBranch = Branch.fromFile(tas, this);
             // TODO Catch FormatExceptions
-            panel.Children.Clear();
-            foreach (UIElement component in masterBranch.getComponents())
-                panel.Children.Add(component);
+            reloadComponents();
             tasEditedSinceLastWatch = true;
             _clearUndoStack();
         }
