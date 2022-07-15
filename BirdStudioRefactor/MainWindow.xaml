@@ -26,6 +26,7 @@
         <CommandBinding Command="commands:CustomCommands.AddBranch" Executed="AddBranch_Execute" />
         <CommandBinding Command="commands:CustomCommands.RemoveBranch" Executed="RemoveBranch_Execute" />
         <CommandBinding Command="commands:CustomCommands.CycleBranch" Executed="CycleBranch_Execute" />
+        <CommandBinding Command="commands:CustomCommands.RenameBranch" Executed="RenameBranch_Execute" />
     </Window.CommandBindings>
     <Grid>
         <Grid.RowDefinitions>
@@ -48,6 +49,7 @@
                 <MenuItem Header="_Add Branch" Command="commands:CustomCommands.AddBranch" />
                 <MenuItem Header="_Change Active Branch" Command="commands:CustomCommands.CycleBranch" />
                 <MenuItem Header="_Remove Branch" Command="commands:CustomCommands.RemoveBranch" />
+                <MenuItem Header="Rename Branch" Command="commands:CustomCommands.RenameBranch" />
             </MenuItem>
         </Menu>
         <ScrollViewer Grid.Row="1">

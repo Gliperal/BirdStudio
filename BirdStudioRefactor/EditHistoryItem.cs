@@ -6,9 +6,12 @@ namespace BirdStudioRefactor
     {
         Unknown,
         ModifyText,
+        NewBranchGroup,
         AddBranch,
         ChangeActiveBranch,
+        RenameBranch,
         RemoveBranch,
+        DeleteBranchGroup,
     };
 
     class EditHistoryItem
@@ -29,6 +32,7 @@ namespace BirdStudioRefactor
         public int activeBranchInitial;
         public int activeBranchFinal;
         public int branchIndex;
-        public Branch copy;
+        public Branch branchCopy;
+        public BranchGroup branchGroupCopy;
     }
 }

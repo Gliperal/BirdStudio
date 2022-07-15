@@ -53,5 +53,11 @@ namespace BirdStudioRefactor.Commands
             "CycleBranch",
             null
         );
+
+        public static RoutedUICommand RenameBranch = makeCommand(
+            "Rename Branch",
+            "RenameBranch",
+            null
+        );
     }
 }

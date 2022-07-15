@@ -13,7 +13,10 @@ namespace BirdStudioRefactor
         BranchGroup,
     }
 
-    interface IBranchSection : IEditable { }
+    interface IBranchSection : IEditable
+    {
+        public IBranchSection clone();
+    }
 
     class BranchGroup : IBranchSection
     {
@@ -21,15 +24,23 @@ namespace BirdStudioRefactor
         public List<Branch> branches;
         public int activeBranch;
 
-        public BranchGroup(List<Branch> branches)
+        public BranchGroup(List<Branch> branches, int activeBranch = 0)
         {
             this.branches = branches;
-            this.activeBranch = 0;
+            this.activeBranch = activeBranch;
             headerComponent = new TextBlock();
-            onChange();
+            updateHeader();
         }
 
-        private void onChange()
+        public IBranchSection clone()
+        {
+            List<Branch> newBranches = new List<Branch>();
+            foreach (Branch branch in branches)
+                newBranches.Add(branch.clone());
+            return new BranchGroup(newBranches, activeBranch);
+        }
+
+        public void updateHeader()
         {
             headerComponent.Text = branches[activeBranch].getName();
         }
@@ -39,19 +50,19 @@ namespace BirdStudioRefactor
             switch(edit.type)
             {
                 case EditType.AddBranch:
-                    // TODO
-                    // Make sure to update active branch
+                    branches.Add(edit.branchCopy);
+                    activeBranch = branches.Count - 1;
+                    // TODO any time the active branch changes, the focussed element should also change
                     return;
                 case EditType.ChangeActiveBranch:
                     activeBranch = edit.activeBranchFinal;
-                    onChange();
                     return;
                 case EditType.RemoveBranch:
-                    // TODO
-                    // Make sure to update active branch
+                    branches.RemoveAt(edit.branchIndex);
+                    activeBranch = edit.activeBranchFinal;
                     return;
                 default:
-                    throw new Exception("Edit type not supported.");
+                    throw new EditTypeNotSupportedException();
             }
         }
 
@@ -60,27 +71,29 @@ namespace BirdStudioRefactor
             switch (edit.type)
             {
                 case EditType.AddBranch:
-                    // TODO
-                    // Make sure to update active branch
+                    branches.RemoveAt(branches.Count - 1);
+                    activeBranch = edit.activeBranchInitial;
                     return;
                 case EditType.ChangeActiveBranch:
                     activeBranch = edit.activeBranchInitial;
-                    onChange();
                     return;
                 case EditType.RemoveBranch:
-                    // TODO
-                    // Make sure to update active branch
+                    branches.Insert(edit.branchIndex, edit.branchCopy.clone());
+                    activeBranch = edit.branchIndex;
                     return;
                 default:
-                    throw new Exception("Edit type not supported.");
+                    throw new EditTypeNotSupportedException();
             }
         }
 
-        public EditHistoryItem addBranchEdit()
+        public EditHistoryItem addBranchEdit(TASEditor parent)
         {
+            // TODO name?
             return new EditHistoryItem
             {
-                // TODO
+                type = EditType.AddBranch,
+                activeBranchInitial = activeBranch,
+                branchCopy = Branch.fromFile("new branch", parent),
             };
         }
 
@@ -95,9 +108,14 @@ namespace BirdStudioRefactor
 
         public EditHistoryItem removeBranchEdit()
         {
+            if (branches.Count <= 1)
+                return null;
             return new EditHistoryItem
             {
-                // TODO
+                type = EditType.RemoveBranch,
+                branchIndex = activeBranch,
+                activeBranchFinal = (activeBranch > 0) ? activeBranch - 1 : 0,
+                branchCopy = branches[activeBranch].clone(),
             };
         }
     }
@@ -108,6 +126,19 @@ namespace BirdStudioRefactor
         List<IBranchSection> nodes = new List<IBranchSection>();
 
         private Branch() {}
+
+        public Branch(Branch src)
+        {
+            name = src.name;
+            nodes = new List<IBranchSection>();
+            foreach (IBranchSection node in src.nodes)
+                nodes.Add(node.clone());
+        }
+
+        public Branch clone()
+        {
+            return new Branch(this);
+        }
 
         private static string removeSingleNewline(string text)
         {
@@ -208,6 +239,7 @@ namespace BirdStudioRefactor
                 else
                 {
                     BranchGroup branchGroup = (BranchGroup)node;
+                    branchGroup.updateHeader();
                     // TODO better UI style
                     components.Add(new Separator());
                     components.Add(branchGroup.headerComponent);
@@ -320,23 +352,56 @@ namespace BirdStudioRefactor
                 return branch.nodes[id[i]];
         }
 
+        public EditHistoryItem renameBranchEdit(string newName)
+        {
+            return new EditHistoryItem
+            {
+                type = EditType.RenameBranch,
+                branchName1 = name,
+                branchName2 = newName,
+            };
+        }
+
+        internal EditHistoryItem newBranchGroupEdit(int inputBlockIndex)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal EditHistoryItem deleteBranchGroupEdit(int branchGroupIndex)
+        {
+            throw new NotImplementedException();
+        }
+
         public void performEdit(EditHistoryItem edit)
         {
             switch (edit.type)
             {
-                case EditType.AddBranch:
-                case EditType.RemoveBranch:
-                case EditType.ChangeActiveBranch:
+                case EditType.RenameBranch:
+                    name = edit.branchName2;
+                    break;
+                case EditType.NewBranchGroup:
                     throw new NotImplementedException();
-                    // TODO should send execution to parent element which is an actual BranchGroup
+                case EditType.DeleteBranchGroup:
+                    throw new NotImplementedException();
                 default:
-                    throw new Exception("No other type of edit should reach this point.");
+                    throw new EditTypeNotSupportedException();
             }
         }
 
         public void revertEdit(EditHistoryItem edit)
         {
-            // TODO
+            switch (edit.type)
+            {
+                case EditType.RenameBranch:
+                    name = edit.branchName1;
+                    break;
+                case EditType.NewBranchGroup:
+                    throw new NotImplementedException();
+                case EditType.DeleteBranchGroup:
+                    throw new NotImplementedException();
+                default:
+                    throw new EditTypeNotSupportedException();
+            }
         }
     }
 }

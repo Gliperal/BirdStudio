@@ -75,5 +75,10 @@ namespace BirdStudioRefactor
         {
             editor.removeBranch();
         }
+
+        private void RenameBranch_Execute(object sender, RoutedEventArgs e)
+        {
+            editor.renameBranch();
+        }
     }
 }

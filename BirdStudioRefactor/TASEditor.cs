@@ -93,14 +93,26 @@ namespace BirdStudioRefactor
 
         public void newBranch()
         {
-            IInputElement focus = FocusManager.GetFocusedElement(panel);
-            // TODO
+            IInputElement focusedElement = FocusManager.GetFocusedElement(panel);
+            List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.InputBlock);
+            if (id == null)
+                return;
+            int inputBlockIndex = id[id.Count - 1];
+            id.RemoveAt(id.Count - 1);
+            Branch target = (Branch)masterBranch.getEditable(id);
+            EditHistoryItem edit = target.newBranchGroupEdit(inputBlockIndex);
+            requestEdit(target, edit);
         }
 
         public void addBranch()
         {
-            IInputElement focus = FocusManager.GetFocusedElement(panel);
-            // TODO
+            IInputElement focusedElement = FocusManager.GetFocusedElement(panel);
+            List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.BranchGroup);
+            if (id == null)
+                return;
+            BranchGroup target = (BranchGroup)masterBranch.getEditable(id);
+            EditHistoryItem edit = target.addBranchEdit(this);
+            requestEdit(target, edit);
         }
 
         public void cycleBranch()
@@ -113,13 +125,53 @@ namespace BirdStudioRefactor
             BranchGroup target = (BranchGroup) masterBranch.getEditable(id);
             EditHistoryItem edit = target.cycleBranchEdit();
             requestEdit(target, edit);
-            reloadComponents();
         }
 
         public void removeBranch()
         {
-            IInputElement focus = FocusManager.GetFocusedElement(panel);
-            // TODO
+            IInputElement focusedElement = FocusManager.GetFocusedElement(panel);
+            List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.BranchGroup);
+            if (id == null)
+                return;
+            BranchGroup target = (BranchGroup)masterBranch.getEditable(id);
+            // If only one branch left, the entire group should be deleted.
+            if (target.branches.Count <= 1)
+            {
+                deleteBranchGroup();
+                return;
+            }
+            EditHistoryItem edit = target.removeBranchEdit();
+            requestEdit(target, edit);
+        }
+
+        public void deleteBranchGroup()
+        {
+            IInputElement focusedElement = FocusManager.GetFocusedElement(panel);
+            List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.BranchGroup);
+            if (id == null)
+                return;
+            int branchGroupIndex = id[id.Count - 1];
+            id.RemoveAt(id.Count - 1);
+            Branch target = (Branch)masterBranch.getEditable(id);
+            // TODO Confirmation dialogue ("Are you sure you want to delete _ branches (_ subbranches) (_ lines)?")
+            EditHistoryItem edit = target.deleteBranchGroupEdit(branchGroupIndex);
+            requestEdit(target, edit);
+        }
+
+        public void renameBranch()
+        {
+            IInputElement focusedElement = FocusManager.GetFocusedElement(panel);
+            List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.Branch);
+            if (id == null)
+                return;
+            Branch target = (Branch)masterBranch.getEditable(id);
+            RenameDialogue dialogue = new RenameDialogue();
+            bool? res = dialogue.ShowDialog();
+            if (res != true)
+                return;
+            string newName = dialogue.ResponseText;
+            EditHistoryItem edit = target.renameBranchEdit(newName);
+            requestEdit(target, edit);
         }
 
         protected override void _importFromFile(string tas)

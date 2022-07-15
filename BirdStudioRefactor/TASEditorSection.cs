@@ -33,6 +33,11 @@ namespace BirdStudioRefactor
             component.Document.UndoStack.SizeLimit = 0;
         }
 
+        public IBranchSection clone()
+        {
+            return new TASEditorSection(text, parent);
+        }
+
         public void performEdit(EditHistoryItem edit)
         {
             text = component.Text;
