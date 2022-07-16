@@ -100,7 +100,7 @@ namespace BirdStudioRefactor
             int inputBlockIndex = id[id.Count - 1];
             id.RemoveAt(id.Count - 1);
             Branch target = (Branch)masterBranch.getEditable(id);
-            EditHistoryItem edit = target.newBranchGroupEdit(inputBlockIndex);
+            EditHistoryItem edit = target.newBranchGroupEdit(inputBlockIndex, this);
             requestEdit(target, edit);
         }
 
@@ -154,7 +154,7 @@ namespace BirdStudioRefactor
             id.RemoveAt(id.Count - 1);
             Branch target = (Branch)masterBranch.getEditable(id);
             // TODO Confirmation dialogue ("Are you sure you want to delete _ branches (_ subbranches) (_ lines)?")
-            EditHistoryItem edit = target.deleteBranchGroupEdit(branchGroupIndex);
+            EditHistoryItem edit = target.deleteBranchGroupEdit(branchGroupIndex, this);
             requestEdit(target, edit);
         }
 

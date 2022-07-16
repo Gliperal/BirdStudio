@@ -15,6 +15,7 @@ namespace BirdStudioRefactor
 
     interface IBranchSection : IEditable
     {
+        public string getText();
         public IBranchSection clone();
     }
 
@@ -43,6 +44,11 @@ namespace BirdStudioRefactor
         public void updateHeader()
         {
             headerComponent.Text = branches[activeBranch].getName();
+        }
+
+        public string getText()
+        {
+            return branches[activeBranch].getText();
         }
 
         public void performEdit(EditHistoryItem edit)
@@ -206,7 +212,7 @@ namespace BirdStudioRefactor
             foreach (IEditable node in nodes)
             {
                 if (node is TASEditorSection)
-                    contents += "\n" + ((TASEditorSection)node).text;
+                    contents += "\n" + ((TASEditorSection)node).getText();
                 else
                 {
                     List<Branch> branches = ((BranchGroup)node).branches;
@@ -248,6 +254,18 @@ namespace BirdStudioRefactor
                 }
             }
             return components;
+        }
+
+        public string getText()
+        {
+            string text = "";
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                if (i > 0)
+                    text += "\n";
+                text += nodes[i].getText();
+            }
+            return text;
         }
 
         private List<int> _getEditable(IInputElement element, ref IEditable target)
@@ -357,19 +375,39 @@ namespace BirdStudioRefactor
             return new EditHistoryItem
             {
                 type = EditType.RenameBranch,
-                branchName1 = name,
-                branchName2 = newName,
+                branchNameInitial = name,
+                branchNameFinal = newName,
             };
         }
 
-        internal EditHistoryItem newBranchGroupEdit(int inputBlockIndex)
+        internal EditHistoryItem newBranchGroupEdit(int inputBlockIndex, TASEditor parent)
         {
-            throw new NotImplementedException();
+            TASEditorSection inputs = (TASEditorSection)nodes[inputBlockIndex];
+            string[] text = inputs.splitOutBranch();
+            List<Branch> branches = new List<Branch>();
+            branches.Add(fromFile(text[1], parent));
+            return new EditHistoryItem
+            {
+                type = EditType.NewBranchGroup,
+                nodeIndex = inputBlockIndex,
+                preText = text[0],
+                branchGroupCopy = new BranchGroup(branches),
+                postText = text[2],
+                parent = parent,
+            };
         }
 
-        internal EditHistoryItem deleteBranchGroupEdit(int branchGroupIndex)
+        internal EditHistoryItem deleteBranchGroupEdit(int branchGroupIndex, TASEditor parent)
         {
-            throw new NotImplementedException();
+            return new EditHistoryItem
+            {
+                type = EditType.DeleteBranchGroup,
+                nodeIndex = branchGroupIndex - 1,
+                preText = ((TASEditorSection)nodes[branchGroupIndex - 1]).getText(),
+                branchGroupCopy = (BranchGroup)nodes[branchGroupIndex].clone(),
+                postText = ((TASEditorSection)nodes[branchGroupIndex + 1]).getText(),
+                parent = parent,
+            };
         }
 
         public void performEdit(EditHistoryItem edit)
@@ -377,12 +415,22 @@ namespace BirdStudioRefactor
             switch (edit.type)
             {
                 case EditType.RenameBranch:
-                    name = edit.branchName2;
+                    name = edit.branchNameFinal;
                     break;
                 case EditType.NewBranchGroup:
-                    throw new NotImplementedException();
+                    // TODO any time things are deleted, the focussed element should change
+                    nodes.RemoveAt(edit.nodeIndex);
+                    nodes.InsertRange(edit.nodeIndex, new IBranchSection[] {
+                        new TASEditorSection(edit.preText, edit.parent),
+                        edit.branchGroupCopy,
+                        new TASEditorSection(edit.postText, edit.parent),
+                    });
+                    break;
                 case EditType.DeleteBranchGroup:
-                    throw new NotImplementedException();
+                    nodes.RemoveRange(edit.nodeIndex, 3);
+                    string text = edit.preText + "\n" + edit.postText;
+                    nodes.Insert(edit.nodeIndex, new TASEditorSection(text, edit.parent));
+                    break;
                 default:
                     throw new EditTypeNotSupportedException();
             }
@@ -393,12 +441,21 @@ namespace BirdStudioRefactor
             switch (edit.type)
             {
                 case EditType.RenameBranch:
-                    name = edit.branchName1;
+                    name = edit.branchNameInitial;
                     break;
                 case EditType.NewBranchGroup:
-                    throw new NotImplementedException();
+                    nodes.RemoveRange(edit.nodeIndex, 3);
+                    string text = edit.preText + edit.branchGroupCopy.getText() + edit.postText;
+                    nodes.Insert(edit.nodeIndex, new TASEditorSection(text, edit.parent));
+                    break;
                 case EditType.DeleteBranchGroup:
-                    throw new NotImplementedException();
+                    nodes.RemoveAt(edit.nodeIndex);
+                    nodes.InsertRange(edit.nodeIndex, new IBranchSection[] {
+                        new TASEditorSection(edit.preText, edit.parent),
+                        edit.branchGroupCopy,
+                        new TASEditorSection(edit.postText, edit.parent),
+                    });
+                    break;
                 default:
                     throw new EditTypeNotSupportedException();
             }

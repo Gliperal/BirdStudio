@@ -26,13 +26,21 @@ namespace BirdStudioRefactor
         public int cursorPosInitial;
         public int cursorPosFinal;
 
-        // branch edits
-        public string branchName1;
-        public string branchName2;
+        // branch group edits
+        public int branchIndex;
         public int activeBranchInitial;
         public int activeBranchFinal;
-        public int branchIndex;
         public Branch branchCopy;
+
+        // branch edits
+        public int nodeIndex;
+        public string branchNameInitial;
+        public string branchNameFinal;
+        public string preText;
         public BranchGroup branchGroupCopy;
+        public string postText;
+
+        // TODO Find a better way to do this
+        public TASEditor parent;
     }
 }

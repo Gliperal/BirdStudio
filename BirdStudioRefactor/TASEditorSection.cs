@@ -10,7 +10,7 @@ namespace BirdStudioRefactor
     {
         private TASEditor parent;
         private TextEditor component;
-        public string text; // TODO private again
+        private string text;
 
         public TASEditorSection(string initialText, TASEditor parent)
         {
@@ -36,6 +36,16 @@ namespace BirdStudioRefactor
         public IBranchSection clone()
         {
             return new TASEditorSection(text, parent);
+        }
+
+        public string getText()
+        {
+            return text;
+        }
+
+        public TextEditor getComponent()
+        {
+            return component;
         }
 
         public void performEdit(EditHistoryItem edit)
@@ -127,9 +137,22 @@ namespace BirdStudioRefactor
             }
         }
 
-        public TextEditor getComponent()
+        public string[] splitOutBranch()
         {
-            return component;
+            if (component.SelectionLength == 0)
+                return new string[]
+                {
+                    text.Substring(0, component.CaretOffset),
+                    text.Substring(component.CaretOffset),
+                    ""
+                };
+            else
+                return new string[]
+                {
+                    text.Substring(0, component.SelectionStart),
+                    text.Substring(component.SelectionStart, component.SelectionLength),
+                    text.Substring(component.SelectionStart + component.SelectionLength),
+                };
         }
     }
 }
