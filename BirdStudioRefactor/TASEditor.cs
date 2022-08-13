@@ -189,6 +189,11 @@ namespace BirdStudioRefactor
         {
             return masterBranch.toFile();
         }
+
+        public void showPlaybackFrame(int frame)
+        {
+            masterBranch.showPlaybackFrame(frame);
+        }
     }
 }
 

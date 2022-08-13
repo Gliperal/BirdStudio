@@ -460,5 +460,11 @@ namespace BirdStudioRefactor
                     throw new EditTypeNotSupportedException();
             }
         }
+
+        public void showPlaybackFrame(int frame)
+        {
+            // TDOO
+            ((TASEditorSection)nodes[0]).showPlaybackFrame(frame);
+        }
     }
 }

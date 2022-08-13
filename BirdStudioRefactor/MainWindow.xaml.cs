@@ -80,5 +80,25 @@ namespace BirdStudioRefactor
         {
             editor.renameBranch();
         }
+
+        private void Menu_LightMode(object sender, RoutedEventArgs e)
+        {
+            // TODO
+        }
+
+        private void Menu_DarkMode(object sender, RoutedEventArgs e)
+        {
+            // TODO
+            editor.showPlaybackFrame(20);
+        }
+
+        /* TODO
+        private void showPlaybackFrame()
+        {
+            if (currentFrame == -1)
+                return;
+            // TODO
+        }
+        */
     }
 }

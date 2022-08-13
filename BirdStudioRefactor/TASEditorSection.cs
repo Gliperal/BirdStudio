@@ -1,16 +1,115 @@
-﻿using System.Windows.Controls;
+﻿using System;
+using System.Collections.Generic;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using ICSharpCode.AvalonEdit;
 
 namespace BirdStudioRefactor
 {
+    public class InputLine
+    {
+        public int frames;
+        public string buttons;
+
+        public InputLine(int frames, string buttons)
+        {
+            this.frames = frames;
+            this.buttons = buttons;
+        }
+
+        public static InputLine from(string line)
+        {
+            line = line.Trim();
+            if (line == "" || line.StartsWith('#') || line.StartsWith('>'))
+                return null;
+            int split = line.LastIndexOfAny("0123456789".ToCharArray()) + 1;
+            // If no frame number is found, split will be at 0.
+            string frames = line.Substring(0, split);
+            string buttons = line.Substring(split).ToUpper();
+            buttons = string.Join("", buttons.Split(','));
+            foreach (char c in buttons)
+                if (!Char.IsLetter(c))
+                    return null;
+            if (split == 0)
+                return new InputLine(0, buttons);
+            try
+            {
+                return new InputLine(Int32.Parse(frames), buttons);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static bool isInputLine(string line)
+        {
+            return from(line) != null;
+        }
+    }
+
+    class InputsData
+    {
+        public List<InputLine> inputLines;
+        public int frameCount;
+        public List<int> startingFrames; // 1 larger in size than inputLines
+
+        public InputsData(string text)
+        {
+            inputLines = new List<InputLine>();
+            string[] lines = text.Split('\n');
+            foreach (string line in lines)
+                inputLines.Add(InputLine.from(line));
+
+            startingFrames = new List<int>();
+            int frame = 0;
+            for (int i = 0; i < inputLines.Count; i++)
+            {
+                startingFrames.Add(frame);
+                if (inputLines[i] != null)
+                    frame += inputLines[i].frames;
+            }
+            startingFrames.Add(frame);
+            frameCount = frame;
+        }
+
+        public int startingFrameForLine(int lineNumber)
+        {
+            if (lineNumber < 0 || lineNumber >= inputLines.Count)
+                return -1;
+            return startingFrames[lineNumber];
+        }
+
+        public int endingFrameForLine(int lineNumber)
+        {
+            if (lineNumber < 0 || lineNumber >= inputLines.Count)
+                return -1;
+            return startingFrames[lineNumber + 1];
+        }
+
+        public int[] locateFrame(int frame)
+        {
+            for (int i = 0; i < inputLines.Count; i++)
+            {
+                int lineStartFrame = startingFrames[i];
+                int lineEndFrame = startingFrames[i + 1];
+                if (frame <= lineEndFrame)
+                    return new int[] { i, frame - lineStartFrame };
+            }
+            return new int[] { inputLines.Count - 1, frame - startingFrames[inputLines.Count] };
+        }
+    }
+
     // TODO Maybe rename this to something like InputsBlock or InputsSection
     class TASEditorSection : IBranchSection
     {
         private TASEditor parent;
         private TextEditor component;
+        private LineHighlighter bgRenderer;
+
         private string text;
+        private InputsData inputsData;
 
         public TASEditorSection(string initialText, TASEditor parent)
         {
@@ -24,6 +123,8 @@ namespace BirdStudioRefactor
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Disabled
             };
+            bgRenderer = new LineHighlighter(component);
+            component.TextArea.TextView.BackgroundRenderers.Add(bgRenderer);
             component.TextArea.PreviewKeyDown += Editor_KeyDown;
             component.TextArea.TextEntering += Editor_TextEntering;
             component.TextChanged += Editor_TextChanged;
@@ -48,6 +149,14 @@ namespace BirdStudioRefactor
             return component;
         }
 
+        public InputsData getInputsData()
+        {
+            if (inputsData != null)
+                return inputsData;
+            inputsData = new InputsData(text);
+            return inputsData;
+        }
+
         public void performEdit(EditHistoryItem edit)
         {
             text = component.Text;
@@ -57,6 +166,7 @@ namespace BirdStudioRefactor
             text = text.Substring(0, edit.pos) + edit.textInserted + text.Substring(edit.pos + edit.textRemoved.Length);
             component.Text = text;
             component.CaretOffset = edit.cursorPosFinal;
+            inputsData = null;
         }
 
         public void revertEdit(EditHistoryItem edit)
@@ -65,6 +175,7 @@ namespace BirdStudioRefactor
             text = text.Substring(0, edit.pos) + edit.textRemoved + text.Substring(edit.pos + edit.textInserted.Length);
             component.Text = text;
             component.CaretOffset = edit.cursorPosInitial;
+            inputsData = null;
         }
 
         // TODO when user clicks within this section:
@@ -153,6 +264,17 @@ namespace BirdStudioRefactor
                     text.Substring(component.SelectionStart, component.SelectionLength),
                     text.Substring(component.SelectionStart + component.SelectionLength),
                 };
+        }
+
+        public void showPlaybackFrame(int frame)
+        {
+            getInputsData();
+            int[] frameLocation = inputsData.locateFrame(frame);
+            bgRenderer.ShowActiveFrame(frameLocation[0], frameLocation[1]);
+            App.Current.Dispatcher.Invoke((Action)delegate // need to update on main thread
+            {
+                component.TextArea.TextView.Redraw();
+            });
         }
     }
 }
