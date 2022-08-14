@@ -130,6 +130,7 @@ namespace BirdStudioRefactor
     {
         private string name;
         List<IBranchSection> nodes = new List<IBranchSection>();
+        private TASEditorSection highlightedSection;
 
         private Branch() {}
 
@@ -461,10 +462,35 @@ namespace BirdStudioRefactor
             }
         }
 
-        public void showPlaybackFrame(int frame)
+        public int showPlaybackFrame(int frame)
         {
-            // TDOO
-            ((TASEditorSection)nodes[0]).showPlaybackFrame(frame);
+            // TODO This could be cached so as to not iterate through the branches every time
+            if (highlightedSection != null)
+                highlightedSection.showPlaybackFrame(-1);
+            foreach (IBranchSection node in nodes)
+            {
+                if (node is TASEditorSection)
+                {
+                    TASEditorSection inputNode = (TASEditorSection)node;
+                    int frameCount = inputNode.getInputsData().frameCount;
+                    if (frame <= frameCount)
+                    {
+                        inputNode.showPlaybackFrame(frame);
+                        highlightedSection = inputNode;
+                        return 0;
+                    }
+                    frame -= frameCount;
+                }
+                else
+                {
+                    BranchGroup branchNode = (BranchGroup)node;
+                    Branch activeBranch = branchNode.branches[branchNode.activeBranch];
+                    frame = activeBranch.showPlaybackFrame(frame);
+                    if (frame == 0)
+                        return 0;
+                }
+            }
+            return frame;
         }
     }
 }

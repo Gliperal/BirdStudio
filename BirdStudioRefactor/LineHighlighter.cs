@@ -14,6 +14,7 @@ namespace BirdStudioRefactor
         private TextEditor editor;
         private int line = -1;
         private int frame;
+        private bool inFocus;
 
         public LineHighlighter(TextEditor editor)
         {
@@ -41,12 +42,15 @@ namespace BirdStudioRefactor
             textView.EnsureVisualLines();
 
             // TODO if multiple lines selected?
-            var currentLine = editor.Document.GetLineByOffset(editor.CaretOffset);
-            foreach (var rect in BackgroundGeometryBuilder.GetRectsForSegment(textView, currentLine))
+            if (inFocus)
             {
-                drawingContext.DrawRectangle(
-                    ColorScheme.activeLineBrush, null,
-                    new Rect(rect.Location, new Size(textView.ActualWidth, rect.Height)));
+                var currentLine = editor.Document.GetLineByOffset(editor.CaretOffset);
+                foreach (var rect in BackgroundGeometryBuilder.GetRectsForSegment(textView, currentLine))
+                {
+                    drawingContext.DrawRectangle(
+                        ColorScheme.activeLineBrush, null,
+                        new Rect(rect.Location, new Size(textView.ActualWidth, rect.Height)));
+                }
             }
 
             if (line > -1 && line < editor.Document.LineCount)
@@ -78,6 +82,11 @@ namespace BirdStudioRefactor
         {
             this.line = line;
             this.frame = frame;
+        }
+
+        public void changeFocus(bool state)
+        {
+            inFocus = state;
         }
     }
 }

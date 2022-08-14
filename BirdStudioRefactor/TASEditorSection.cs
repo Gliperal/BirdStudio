@@ -128,6 +128,8 @@ namespace BirdStudioRefactor
             component.TextArea.PreviewKeyDown += Editor_KeyDown;
             component.TextArea.TextEntering += Editor_TextEntering;
             component.TextChanged += Editor_TextChanged;
+            component.GotKeyboardFocus += Editor_GainedFocus;
+            component.LostKeyboardFocus += Editor_LostFocus;
             text = initialText;
             component.Text = initialText;
             // Disable native undo/redo
@@ -177,9 +179,6 @@ namespace BirdStudioRefactor
             component.CaretOffset = edit.cursorPosInitial;
             inputsData = null;
         }
-
-        // TODO when user clicks within this section:
-        // parent.takeFocus(this); <--- should unfocus other sections, and unselect any highlighted blocks of text within them
 
         private void userEdit(int pos, int deleteLength, string insert)
         {
@@ -248,6 +247,19 @@ namespace BirdStudioRefactor
             }
         }
 
+        private void Editor_GainedFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            bgRenderer.changeFocus(true);
+            component.TextArea.TextView.Redraw();
+        }
+
+        private void Editor_LostFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            bgRenderer.changeFocus(false);
+            component.TextArea.TextView.Redraw();
+            component.SelectionLength = 0;
+        }
+
         public string[] splitOutBranch()
         {
             if (component.SelectionLength == 0)
@@ -268,9 +280,14 @@ namespace BirdStudioRefactor
 
         public void showPlaybackFrame(int frame)
         {
-            getInputsData();
-            int[] frameLocation = inputsData.locateFrame(frame);
-            bgRenderer.ShowActiveFrame(frameLocation[0], frameLocation[1]);
+            if (frame == -1)
+                bgRenderer.ShowActiveFrame(-1, -1);
+            else
+            {
+                getInputsData();
+                int[] frameLocation = inputsData.locateFrame(frame);
+                bgRenderer.ShowActiveFrame(frameLocation[0], frameLocation[1]);
+            }
             App.Current.Dispatcher.Invoke((Action)delegate // need to update on main thread
             {
                 component.TextArea.TextView.Redraw();
