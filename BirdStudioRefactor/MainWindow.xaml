@@ -40,6 +40,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Menu Style="{DynamicResource MenuStyle}" Grid.Row="0">
             <MenuItem Style="{DynamicResource MenuItemStyle}" Header="_File">
@@ -70,11 +71,46 @@
             </MenuItem-->
             <MenuItem Style="{DynamicResource MenuItemStyle}" Header="_Preferences">
                 <MenuItem Name="darkModeMenuItem" Header="_Dark Mode" IsCheckable="True" Checked="Menu_DarkMode" Unchecked="Menu_LightMode" />
-                <!--MenuItem Header="_Show/Hide Help" Click="Menu_ToggleHelp" /-->
+                <MenuItem Header="_Show/Hide Help" Click="Menu_ToggleHelp" />
             </MenuItem>
         </Menu>
         <ScrollViewer Grid.Row="1">
             <StackPanel x:Name="editorBase" FocusManager.IsFocusScope="True" />
         </ScrollViewer>
+        <TextBlock Style="{DynamicResource TextBlockStyle}"
+            Name="helpBlock"
+            Grid.Row="2"
+            Padding="5px"
+            Visibility="Collapsed"
+            TextWrapping="WrapWithOverflow"
+        >
+            <Run FontWeight="Bold" Text="Letter Meanings"/>
+            <LineBreak/>
+            <Run Text="[R] Right [L] Left [U] Up [D] Down"/>
+            <LineBreak/>
+            <Run Text="[J] Jump [X] Dash [G] Glide [C] Interact"/>
+            <LineBreak/>
+            <Run Text="[Q] Reset [M] Dash Axis 1 [N] Dash Axis 2"/>
+            <LineBreak/>
+            <LineBreak/>
+            <Run FontWeight="Bold" Text="Commands"/>
+            <LineBreak/>
+            <Run Text=">stage: load the specified stage (necessary for playback)"/>
+            <LineBreak/>
+            <Run Text=">rerecords: roughly tracks how many times the tas has been modified"/>
+            <LineBreak/>
+            <Run Text="#: begin a comment"/>
+            <LineBreak/>
+            <LineBreak/>
+            <Run FontWeight="Bold" Text="Useful Shortcuts"/>
+            <LineBreak/>
+            <Run Text="Ctrl+W: Play TAS from the beginning"/>
+            <LineBreak/>
+            <Run Text="Ctrl+Q: Fast forward through TAS and pause on the currently selected line"/>
+            <LineBreak/>
+            <Run Text="[ (open bracket): Frame Advance"/>
+            <LineBreak/>
+            <Run Text="] (close bracket): Play / Pause"/>
+        </TextBlock>
     </Grid>
 </Window>

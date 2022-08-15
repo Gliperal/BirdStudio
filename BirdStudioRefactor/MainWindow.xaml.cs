@@ -16,8 +16,18 @@ namespace BirdStudioRefactor
         {
             InitializeComponent();
             editor = new TASEditor(this, editorBase);
-            ColorScheme.LightMode();
+            if (UserPreferences.get("dark mode", "false") == "true")
+            {
+                ColorScheme.DarkMode();
+                darkModeMenuItem.IsChecked = true;
+            }
+            else
+            {
+                ColorScheme.LightMode();
+            }
             updateColorScheme();
+            if (UserPreferences.get("show help", "false") == "true")
+                helpBlock.Visibility = Visibility.Visible;
         }
 
         private void NewCommand_Execute(object sender, RoutedEventArgs e)
@@ -97,12 +107,28 @@ namespace BirdStudioRefactor
         {
             ColorScheme.LightMode();
             updateColorScheme();
+            UserPreferences.set("dark mode", "false");
         }
 
         private void Menu_DarkMode(object sender, RoutedEventArgs e)
         {
             ColorScheme.DarkMode();
             updateColorScheme();
+            UserPreferences.set("dark mode", "true");
+        }
+
+        private void Menu_ToggleHelp(object sender, RoutedEventArgs e)
+        {
+            if (helpBlock.Visibility == Visibility.Visible)
+            {
+                helpBlock.Visibility = Visibility.Collapsed;
+                UserPreferences.set("show help", "false");
+            }
+            else
+            {
+                helpBlock.Visibility = Visibility.Visible;
+                UserPreferences.set("show help", "true");
+            }
         }
 
         /* TODO
