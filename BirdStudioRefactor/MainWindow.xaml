@@ -7,6 +7,14 @@
         xmlns:commands="clr-namespace:BirdStudioRefactor.Commands"
         mc:Ignorable="d"
         Title="birb" Height="800" Width="300">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="MenuStyle.xaml" />
+                <ResourceDictionary Source="ScrollBarStyle.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
     <Window.CommandBindings>
         <CommandBinding Command="New" Executed="NewCommand_Execute" />
         <CommandBinding Command="Open" Executed="OpenCommand_Execute" />
@@ -28,39 +36,39 @@
         <CommandBinding Command="commands:CustomCommands.CycleBranch" Executed="CycleBranch_Execute" />
         <CommandBinding Command="commands:CustomCommands.RenameBranch" Executed="RenameBranch_Execute" />
     </Window.CommandBindings>
-    <Grid>
+    <Grid Background="{DynamicResource Editor.Background}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Menu Grid.Row="0">
-            <MenuItem Header="_File">
+        <Menu Style="{DynamicResource MenuStyle}" Grid.Row="0">
+            <MenuItem Style="{DynamicResource MenuItemStyle}" Header="_File">
                 <MenuItem Header="_New" Command="New" />
                 <MenuItem Header="_Open" Command="Open" />
                 <MenuItem Header="_Save" Command="Save" />
                 <MenuItem Header="Save _As" Command="SaveAs" />
             </MenuItem>
-            <MenuItem Header="_Edit">
+            <MenuItem Style="{DynamicResource MenuItemStyle}" Header="_Edit">
                 <MenuItem Header="_Undo" Command="commands:CustomCommands.Undo" />
                 <MenuItem Header="_Redo" Command="commands:CustomCommands.Redo" />
                 <!--Separator/>
                 <MenuItem Header="_Comment Line(s)" Command="commands:CustomCommands.Comment" />
                 <MenuItem Header="Insert _Timestamp" Command="commands:CustomCommands.AddTimestamp" /-->
             </MenuItem>
-            <MenuItem Header="B_ranch">
+            <MenuItem Style="{DynamicResource MenuItemStyle}" Header="B_ranch">
                 <MenuItem Header="_New Branch at Cursor" Command="commands:CustomCommands.NewBranch" />
                 <MenuItem Header="_Add Branch" Command="commands:CustomCommands.AddBranch" />
                 <MenuItem Header="_Change Active Branch" Command="commands:CustomCommands.CycleBranch" />
                 <MenuItem Header="_Remove Branch" Command="commands:CustomCommands.RemoveBranch" />
                 <MenuItem Header="Rename Branch" Command="commands:CustomCommands.RenameBranch" />
             </MenuItem>
-            <!--MenuItem Header="_Bird">
+            <!--MenuItem Style="{DynamicResource MenuItemStyle}" Header="_Bird">
                 <MenuItem Header="Watch from _Start" Command="commands:CustomCommands.WatchFromStart" />
                 <MenuItem Header="Watch to _Cursor" Command="commands:CustomCommands.WatchToCursor" />
                 <MenuItem Header="_Play / Pause" Command="commands:CustomCommands.PlayPause" />
                 <MenuItem Header="_Frame Advance" Command="commands:CustomCommands.StepFrame" />
             </MenuItem-->
-            <MenuItem Header="_Preferences">
+            <MenuItem Style="{DynamicResource MenuItemStyle}" Header="_Preferences">
                 <MenuItem Name="darkModeMenuItem" Header="_Dark Mode" IsCheckable="True" Checked="Menu_DarkMode" Unchecked="Menu_LightMode" />
                 <!--MenuItem Header="_Show/Hide Help" Click="Menu_ToggleHelp" /-->
             </MenuItem>

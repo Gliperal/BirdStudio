@@ -124,6 +124,8 @@ namespace BirdStudioRefactor
                 VerticalScrollBarVisibility = ScrollBarVisibility.Disabled
             };
             bgRenderer = new LineHighlighter(component);
+            component.SetResourceReference(Control.ForegroundProperty, "Editor.Foreground");
+            component.SetResourceReference(Control.BackgroundProperty, "Editor.Background");
             component.TextArea.TextView.BackgroundRenderers.Add(bgRenderer);
             component.TextArea.PreviewKeyDown += Editor_KeyDown;
             component.TextArea.TextEntering += Editor_TextEntering;

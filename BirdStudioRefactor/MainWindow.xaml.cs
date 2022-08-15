@@ -1,5 +1,7 @@
-﻿using System.Windows;
+﻿using System.Collections.Generic;
+using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace BirdStudioRefactor
 {
@@ -14,6 +16,8 @@ namespace BirdStudioRefactor
         {
             InitializeComponent();
             editor = new TASEditor(this, editorBase);
+            ColorScheme.LightMode();
+            updateColorScheme();
         }
 
         private void NewCommand_Execute(object sender, RoutedEventArgs e)
@@ -81,15 +85,24 @@ namespace BirdStudioRefactor
             editor.renameBranch();
         }
 
+        private void updateColorScheme()
+        {
+            foreach (KeyValuePair<string, SolidColorBrush> kvp in ColorScheme.resources)
+                Resources[kvp.Key] = kvp.Value;
+            // TODO
+            editor.showPlaybackFrame(20);
+        }
+
         private void Menu_LightMode(object sender, RoutedEventArgs e)
         {
-            // TODO
+            ColorScheme.LightMode();
+            updateColorScheme();
         }
 
         private void Menu_DarkMode(object sender, RoutedEventArgs e)
         {
-            // TODO
-            editor.showPlaybackFrame(20);
+            ColorScheme.DarkMode();
+            updateColorScheme();
         }
 
         /* TODO
