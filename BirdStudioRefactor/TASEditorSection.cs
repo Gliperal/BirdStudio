@@ -182,18 +182,97 @@ namespace BirdStudioRefactor
             inputsData = null;
         }
 
+        private static string _tasLine(int frames, HashSet<char> buttons)
+        {
+            if (buttons.Count == 0)
+                return String.Format("{0,4}", frames);
+            const string order = "RLUDJXGCQMN";
+            List<char> orderedButtons = new List<char>();
+            foreach (char c in order)
+                if (buttons.Contains(c))
+                    orderedButtons.Add(c);
+            string buttonsStr = string.Join(",", orderedButtons);
+            if (buttonsStr == "")
+                return String.Format("{0,4}", frames);
+            else
+                return String.Format("{0,4},{1}", frames, buttonsStr);
+        }
+
+        // TODO ugly, ugly function >.<
         private void userEdit(int pos, int deleteLength, string insert)
         {
-            // TODO Reformat to fit tas style and obtain new pos/deleteLength/insert
-            EditHistoryItem edit = new EditHistoryItem {
-                type = EditType.ModifyText,
-                pos = pos,
-                textRemoved = text.Substring(pos, deleteLength),
-                textInserted = insert,
-                cursorPosInitial = component.CaretOffset,
-                cursorPosFinal = pos + insert.Length
-            };
-            parent.requestEdit(this, edit);
+            // TODO re-obtain stage if needed
+            int startOfLine = text.LastIndexOf('\n', pos - 1) + 1;
+            int endOfFirstLine = text.IndexOf('\n', pos);
+            if (endOfFirstLine == -1)
+                endOfFirstLine = text.Length;
+            int endOfLastLine = text.IndexOf('\n', pos + deleteLength);
+            if (endOfLastLine == -1)
+                endOfLastLine = text.Length;
+            bool firstLineIsInputLine = InputLine.isInputLine(text.Substring(startOfLine, endOfFirstLine - startOfLine));
+            if (firstLineIsInputLine && deleteLength == 0)
+            {
+                if (insert == "#")
+                    pos = startOfLine;
+                else if (insert == "\n")
+                {
+                    if (text.Substring(startOfLine, pos - startOfLine).Trim() == "")
+                        pos = startOfLine;
+                    else
+                        pos = endOfFirstLine;
+                }
+                else
+                {
+                    // Unless we're typing numbers in the middle of the number, default cursor to position 4
+                    int endOfNumbers = Util.firstIndexThatIsNot(text, " \t0123456789", startOfLine);
+                    if (!Char.IsDigit(insert[0]) || pos > endOfNumbers)
+                        pos = endOfNumbers;
+                }
+            }
+            string line = text.Substring(startOfLine, pos - startOfLine) + insert + text.Substring(pos + deleteLength, endOfLastLine - pos - deleteLength);
+            InputLine inputLine = InputLine.from(line);
+            if (inputLine != null && !insert.Contains('\n'))
+            {
+                HashSet<char> buttons = new HashSet<char>();
+                foreach (char c in inputLine.buttons)
+                {
+                    if (buttons.Contains(c))
+                        buttons.Remove(c);
+                    else
+                        buttons.Add(c);
+                }
+                string reformattedLine = _tasLine(inputLine.frames, buttons);
+
+                // Calculate new caret position, based on where caret appeared relative to the frame number
+                int caret = pos + insert.Length - startOfLine;
+                int newCaret = Util.firstIndexThatIsNot(reformattedLine, " 0");
+                int i = Util.firstIndexThatIsNot(line, " 0");
+                for (; i < caret && Char.IsDigit(line[i]); i++)
+                    newCaret++;
+                EditHistoryItem edit = new EditHistoryItem
+                {
+                    type = EditType.ModifyText,
+                    pos = startOfLine,
+                    textRemoved = text.Substring(startOfLine, endOfLastLine - startOfLine),
+                    textInserted = reformattedLine,
+                    cursorPosInitial = component.CaretOffset,
+                    cursorPosFinal = startOfLine + newCaret
+                };
+                parent.requestEdit(this, edit);
+            }
+            else
+            {
+                EditHistoryItem edit = new EditHistoryItem
+                {
+                    type = EditType.ModifyText,
+                    pos = pos,
+                    textRemoved = text.Substring(pos, deleteLength),
+                    textInserted = insert,
+                    cursorPosInitial = component.CaretOffset,
+                    cursorPosFinal = pos + insert.Length
+                };
+                parent.requestEdit(this, edit);
+            }
         }
 
         private void Editor_KeyDown(object sender, KeyEventArgs e)
