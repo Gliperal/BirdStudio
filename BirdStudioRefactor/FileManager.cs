@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -122,15 +123,12 @@ namespace BirdStudioRefactor
                 // replay file
                 try
                 {
-                    throw new FormatException();
-                    // TODO
-                    // Replay replay = new Replay(file);
-                    // List<Press> presses = replay.toPresses();
-                    // string stage = filePathToNameOnly(file);
-                    // tas = new TAS(presses, stage);
-                    // window.loadNewTAS(tas.toText());
-                    // _setTasFile(null);
-                    // return
+                    Replay replay = new Replay(file);
+                    List<Press> presses = replay.toPresses();
+                    InputsData t = new InputsData(presses);
+                    _setTasFile(null);
+                    _importFromFile(t.toText());
+                    return;
                 }
                 catch (FormatException ex) { }
             }

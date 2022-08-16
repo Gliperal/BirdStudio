@@ -43,6 +43,23 @@ namespace BirdStudioRefactor
             }
         }
 
+        // TODO maybe "toText" would be better?
+        public string toTasLine()
+        {
+            if (buttons.Length == 0)
+                return String.Format("{0,4}", frames);
+            const string order = InputsData.BUTTONS;
+            List<char> orderedButtons = new List<char>();
+            foreach (char c in order)
+                if (buttons.Contains(c))
+                    orderedButtons.Add(c);
+            string buttonsStr = string.Join(",", orderedButtons);
+            if (buttonsStr == "")
+                return String.Format("{0,4}", frames);
+            else
+                return String.Format("{0,4},{1}", frames, buttonsStr);
+        }
+
         public static bool isInputLine(string line)
         {
             return from(line) != null;
@@ -51,6 +68,8 @@ namespace BirdStudioRefactor
 
     class InputsData
     {
+        public const string BUTTONS = "RLUDJXGCQMN";
+
         public List<InputLine> inputLines;
         public int frameCount;
         public List<int> startingFrames; // 1 larger in size than inputLines
@@ -61,7 +80,32 @@ namespace BirdStudioRefactor
             string[] lines = text.Split('\n');
             foreach (string line in lines)
                 inputLines.Add(InputLine.from(line));
+            countFrames();
+        }
 
+        public InputsData(List<Press> presses)
+        {
+            inputLines = new List<InputLine>();
+            presses.Sort(Press.compareFrames);
+            HashSet<char> state = new HashSet<char>();
+            int frame = 0;
+            foreach (Press press in presses)
+            {
+                if (press.frame > frame)
+                {
+                    inputLines.Add(new InputLine(press.frame - frame, string.Join("", state)));
+                    frame = press.frame;
+                }
+                if (press.on)
+                    state.Add(press.button);
+                else
+                    state.Remove(press.button);
+            }
+            inputLines.Add(new InputLine(1, string.Join("", state)));
+        }
+
+        private void countFrames()
+        {
             startingFrames = new List<int>();
             int frame = 0;
             for (int i = 0; i < inputLines.Count; i++)
@@ -72,6 +116,46 @@ namespace BirdStudioRefactor
             }
             startingFrames.Add(frame);
             frameCount = frame;
+        }
+
+        public List<Press> toPresses()
+        {
+            List<Press> presses = new List<Press>();
+            HashSet<char> state = new HashSet<char>();
+            int frame = 0;
+            foreach (InputLine inputLine in inputLines)
+            {
+                if (inputLine == null)
+                    continue;
+                foreach (char button in BUTTONS)
+                {
+                    bool isOn = inputLine.buttons.Contains(button);
+                    bool wasOn = state.Contains(button);
+                    if (isOn != wasOn)
+                    {
+                        presses.Add(new Press
+                        {
+                            frame = frame,
+                            button = button,
+                            on = isOn
+                        });
+                        if (isOn)
+                            state.Add(button);
+                        else
+                            state.Remove(button);
+                    }
+                }
+                frame += inputLine.frames;
+            }
+            return presses;
+        }
+
+        public string toText()
+        {
+            string text = "";
+            foreach (InputLine inputLine in inputLines)
+                text += inputLine.toTasLine() + '\n';
+            return text;
         }
 
         public int startingFrameForLine(int lineNumber)
@@ -182,24 +266,8 @@ namespace BirdStudioRefactor
             inputsData = null;
         }
 
-        private static string _tasLine(int frames, HashSet<char> buttons)
-        {
-            if (buttons.Count == 0)
-                return String.Format("{0,4}", frames);
-            const string order = "RLUDJXGCQMN";
-            List<char> orderedButtons = new List<char>();
-            foreach (char c in order)
-                if (buttons.Contains(c))
-                    orderedButtons.Add(c);
-            string buttonsStr = string.Join(",", orderedButtons);
-            if (buttonsStr == "")
-                return String.Format("{0,4}", frames);
-            else
-                return String.Format("{0,4},{1}", frames, buttonsStr);
-        }
-
         // TODO ugly, ugly function >.<
-        private void userEdit(int pos, int deleteLength, string insert)
+        private void _userEdit(int pos, int deleteLength, string insert)
         {
             // TODO re-obtain stage if needed
             int startOfLine = text.LastIndexOf('\n', pos - 1) + 1;
@@ -241,7 +309,7 @@ namespace BirdStudioRefactor
                     else
                         buttons.Add(c);
                 }
-                string reformattedLine = _tasLine(inputLine.frames, buttons);
+                string reformattedLine = new InputLine(inputLine.frames, string.Join("", buttons)).toTasLine();
 
                 // Calculate new caret position, based on where caret appeared relative to the frame number
                 int caret = pos + insert.Length - startOfLine;
@@ -292,7 +360,7 @@ namespace BirdStudioRefactor
                     deletePos >= 0 &&
                     deletePos + deleteLength <= component.Document.TextLength
                 )
-                    userEdit(deletePos, deleteLength, "");
+                    _userEdit(deletePos, deleteLength, "");
                 e.Handled = true;
             }
         }
@@ -306,7 +374,7 @@ namespace BirdStudioRefactor
                 pos = component.SelectionStart;
                 deleteLength = component.SelectionLength;
             }
-            userEdit(pos, deleteLength, e.Text);
+            _userEdit(pos, deleteLength, e.Text);
             e.Handled = true;
         }
 
