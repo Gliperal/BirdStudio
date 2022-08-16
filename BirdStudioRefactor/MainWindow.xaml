@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:BirdStudioRefactor"
         xmlns:commands="clr-namespace:BirdStudioRefactor.Commands"
         mc:Ignorable="d"
-        Title="birb" Height="800" Width="300">
+        Title="birb" Height="800" Width="300"
+        Icon="Icon.ico">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
