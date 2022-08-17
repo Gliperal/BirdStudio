@@ -30,6 +30,20 @@ namespace BirdStudioRefactor.Commands
             new KeyGesture(Key.Y, ModifierKeys.Control)
         );
 
+        /*
+        public static RoutedUICommand Comment = makeCommand(
+            "Comment/Uncomment Lines",
+            "ToggleComment",
+            new KeyGesture(Key.OemQuestion, ModifierKeys.Control)
+        );
+
+        public static RoutedUICommand AddTimestamp = makeCommand(
+            "Add Timestamp",
+            "Timestamp",
+            new KeyGesture(Key.T, ModifierKeys.Control)
+        );
+        */
+
         public static RoutedUICommand NewBranch = makeCommand(
             "New Branch",
             "NewBranch",
@@ -58,6 +72,30 @@ namespace BirdStudioRefactor.Commands
             "Rename Branch",
             "RenameBranch",
             null
+        );
+
+        public static RoutedUICommand WatchFromStart = makeCommand(
+            "Watch from Start",
+            "WatchFromStart",
+            new KeyGesture(Key.W, ModifierKeys.Control)
+        );
+
+        public static RoutedUICommand WatchToCursor = makeCommand(
+            "Watch to Cursor",
+            "WatchToCursor",
+            new KeyGesture(Key.Q, ModifierKeys.Control)
+        );
+
+        public static RoutedUICommand StepFrame = makeCommand(
+            "Frame Advance",
+            "StepFrame",
+            new KeyGesture(Key.OemOpenBrackets)
+        );
+
+        public static RoutedUICommand PlayPause = makeCommand(
+            "Play / Pause",
+            "PlayPause",
+            new KeyGesture(Key.OemCloseBrackets)
         );
     }
 }

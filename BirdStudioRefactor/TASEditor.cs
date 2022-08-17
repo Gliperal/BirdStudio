@@ -194,6 +194,38 @@ namespace BirdStudioRefactor
         {
             masterBranch.showPlaybackFrame(frame);
         }
+
+        private void _watch(int breakpoint)
+        {
+            string text = masterBranch.getText();
+            InputsData tas = new InputsData(text);
+            List<Press> presses = tas.toPresses();
+            Replay replay = new Replay(presses);
+            string replayBuffer = replay.writeString();
+            string stage = null;
+            foreach (string line in text.Split('\n'))
+                if (line.Trim().StartsWith(">stage "))
+                    stage = line.Trim().Substring(7);
+            TcpManager.sendLoadReplayCommand(stage, replayBuffer, breakpoint);
+            tasEditedSinceLastWatch = false;
+        }
+
+        public void watchFromStart()
+        {
+            _watch(-1);
+        }
+
+        public void watchToCursor()
+        {
+            IInputElement focusedElement = FocusManager.GetFocusedElement(panel);
+            List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.InputBlock);
+            if (id == null)
+                return;
+            TASEditorSection block = (TASEditorSection)masterBranch.getEditable(id);
+            int lineWithinBlock = block.getComponent().TextArea.Caret.Line - 1;
+            int frameWithinBlock = block.getInputsData().endingFrameForLine(lineWithinBlock);
+            _watch(masterBranch.getStartFrameOfBlock(block) + frameWithinBlock);
+        }
     }
 }
 

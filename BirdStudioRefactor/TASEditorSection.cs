@@ -70,9 +70,9 @@ namespace BirdStudioRefactor
     {
         public const string BUTTONS = "RLUDJXGCQMN";
 
-        public List<InputLine> inputLines;
-        public int frameCount;
-        public List<int> startingFrames; // 1 larger in size than inputLines
+        private List<InputLine> inputLines;
+        private int frameCount;
+        private List<int> startingFrames; // 1 larger in size than inputLines
 
         public InputsData(string text)
         {
@@ -183,6 +183,11 @@ namespace BirdStudioRefactor
             }
             return new int[] { inputLines.Count - 1, frame - startingFrames[inputLines.Count] };
         }
+
+        public int totalFrames()
+        {
+            return frameCount;
+        }
     }
 
     // TODO Maybe rename this to something like InputsBlock or InputsSection
@@ -292,7 +297,7 @@ namespace BirdStudioRefactor
                 else
                 {
                     // Unless we're typing numbers in the middle of the number, default cursor to position 4
-                    int endOfNumbers = Util.firstIndexThatIsNot(text, " \t0123456789", startOfLine);
+                    int endOfNumbers = StringUtil.firstIndexThatIsNot(text, " \t0123456789", startOfLine);
                     if (!Char.IsDigit(insert[0]) || pos > endOfNumbers)
                         pos = endOfNumbers;
                 }
@@ -313,8 +318,8 @@ namespace BirdStudioRefactor
 
                 // Calculate new caret position, based on where caret appeared relative to the frame number
                 int caret = pos + insert.Length - startOfLine;
-                int newCaret = Util.firstIndexThatIsNot(reformattedLine, " 0");
-                int i = Util.firstIndexThatIsNot(line, " 0");
+                int newCaret = StringUtil.firstIndexThatIsNot(reformattedLine, " 0");
+                int i = StringUtil.firstIndexThatIsNot(line, " 0");
                 for (; i < caret && Char.IsDigit(line[i]); i++)
                     newCaret++;
                 EditHistoryItem edit = new EditHistoryItem

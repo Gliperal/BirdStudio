@@ -28,6 +28,7 @@ namespace BirdStudioRefactor
             updateColorScheme();
             if (UserPreferences.get("show help", "false") == "true")
                 helpBlock.Visibility = Visibility.Visible;
+            TcpManager.connect(); // TODO Remove (find a better way to handle the first connection than listenForMessages)
         }
 
         private void NewCommand_Execute(object sender, RoutedEventArgs e)
@@ -93,6 +94,31 @@ namespace BirdStudioRefactor
         private void RenameBranch_Execute(object sender, RoutedEventArgs e)
         {
             editor.renameBranch();
+        }
+
+        private void TCP_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = TcpManager.isConnected();
+        }
+
+        private void WatchFromStart_Execute(object sender, RoutedEventArgs e)
+        {
+            editor.watchFromStart();
+        }
+
+        private void WatchToCursor_Execute(object sender, RoutedEventArgs e)
+        {
+            editor.watchToCursor();
+        }
+
+        private void PlayPause_Execute(object sender, RoutedEventArgs e)
+        {
+            TcpManager.sendCommand("TogglePause");
+        }
+
+        private void StepFrame_Execute(object sender, RoutedEventArgs e)
+        {
+            TcpManager.sendCommand("StepFrame");
         }
 
         private void updateColorScheme()

@@ -1,6 +1,6 @@
 ﻿namespace BirdStudioRefactor
 {
-    class Util
+    class StringUtil
     {
         public static int firstIndexThatIsNot(string str, string anyOf, int start = 0)
         {

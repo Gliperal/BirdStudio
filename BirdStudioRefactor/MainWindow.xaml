@@ -36,6 +36,28 @@
         <CommandBinding Command="commands:CustomCommands.RemoveBranch" Executed="RemoveBranch_Execute" />
         <CommandBinding Command="commands:CustomCommands.CycleBranch" Executed="CycleBranch_Execute" />
         <CommandBinding Command="commands:CustomCommands.RenameBranch" Executed="RenameBranch_Execute" />
+        <CommandBinding
+            Command="commands:CustomCommands.WatchFromStart"
+            Executed="WatchFromStart_Execute"
+            CanExecute="TCP_CanExecute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.WatchToCursor"
+            Executed="WatchToCursor_Execute"
+            CanExecute="TCP_CanExecute"
+        />
+        <CommandBinding
+            x:Name="playPauseCommandBinding"
+            Command="commands:CustomCommands.PlayPause"
+            Executed="PlayPause_Execute"
+            CanExecute="TCP_CanExecute"
+        />
+        <CommandBinding
+            x:Name="stepFrameCommandBinding"
+            Command="commands:CustomCommands.StepFrame"
+            Executed="StepFrame_Execute"
+            CanExecute="TCP_CanExecute"
+        />
     </Window.CommandBindings>
     <Grid Background="{DynamicResource Editor.Background}">
         <Grid.RowDefinitions>
@@ -64,12 +86,12 @@
                 <MenuItem Header="_Remove Branch" Command="commands:CustomCommands.RemoveBranch" />
                 <MenuItem Header="Rename Branch" Command="commands:CustomCommands.RenameBranch" />
             </MenuItem>
-            <!--MenuItem Style="{DynamicResource MenuItemStyle}" Header="_Bird">
+            <MenuItem Style="{DynamicResource MenuItemStyle}" Header="_Bird">
                 <MenuItem Header="Watch from _Start" Command="commands:CustomCommands.WatchFromStart" />
                 <MenuItem Header="Watch to _Cursor" Command="commands:CustomCommands.WatchToCursor" />
                 <MenuItem Header="_Play / Pause" Command="commands:CustomCommands.PlayPause" />
                 <MenuItem Header="_Frame Advance" Command="commands:CustomCommands.StepFrame" />
-            </MenuItem-->
+            </MenuItem>
             <MenuItem Style="{DynamicResource MenuItemStyle}" Header="_Preferences">
                 <MenuItem Name="darkModeMenuItem" Header="_Dark Mode" IsCheckable="True" Checked="Menu_DarkMode" Unchecked="Menu_LightMode" />
                 <MenuItem Header="_Show/Hide Help" Click="Menu_ToggleHelp" />

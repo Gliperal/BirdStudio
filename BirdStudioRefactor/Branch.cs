@@ -472,7 +472,7 @@ namespace BirdStudioRefactor
                 if (node is TASEditorSection)
                 {
                     TASEditorSection inputNode = (TASEditorSection)node;
-                    int frameCount = inputNode.getInputsData().frameCount;
+                    int frameCount = inputNode.getInputsData().totalFrames();
                     if (frame <= frameCount)
                     {
                         inputNode.showPlaybackFrame(frame);
@@ -491,6 +491,28 @@ namespace BirdStudioRefactor
                 }
             }
             return frame;
+        }
+
+        public int getStartFrameOfBlock(TASEditorSection block)
+        {
+            int count = 0;
+            foreach (IBranchSection node in nodes)
+            {
+                if (node == block)
+                    return count;
+                else if (node is TASEditorSection)
+                    count += ((TASEditorSection)node).getInputsData().totalFrames();
+                else if (node is BranchGroup)
+                {
+                    foreach (Branch branch in ((BranchGroup)node).branches)
+                    {
+                        int countWithinBranch = branch.getStartFrameOfBlock(block);
+                        if (countWithinBranch != -1)
+                            return count + countWithinBranch;
+                    }
+                }
+            }
+            return -1;
         }
     }
 }
