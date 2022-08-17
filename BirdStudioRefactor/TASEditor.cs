@@ -14,6 +14,7 @@ namespace BirdStudioRefactor
         private List<EditHistoryItem> editHistory = new List<EditHistoryItem>();
         private int editHistoryLocation = 0;
         private bool tasEditedSinceLastWatch = true;
+        private int playbackFrame = -1;
 
         public TASEditor(MainWindow window, StackPanel panel) : base(window)
         {
@@ -30,6 +31,7 @@ namespace BirdStudioRefactor
             editHistory.Add(edit);
             editHistoryLocation++;
             fileChanged();
+            masterBranch.showPlaybackFrame(playbackFrame);
         }
 
         public void requestEdit(IEditable target, EditHistoryItem edit)
@@ -46,7 +48,6 @@ namespace BirdStudioRefactor
             foreach (UIElement component in masterBranch.getComponents())
                 panel.Children.Add(component);
             // TODO Maintain scroll position
-            // TODO re-highlight active line?
         }
 
         public bool canUndo()
@@ -192,7 +193,9 @@ namespace BirdStudioRefactor
 
         public void showPlaybackFrame(int frame)
         {
-            masterBranch.showPlaybackFrame(frame);
+            playbackFrame = frame;
+            if (frame != -1)
+                masterBranch.showPlaybackFrame(frame);
         }
 
         private void _watch(int breakpoint)

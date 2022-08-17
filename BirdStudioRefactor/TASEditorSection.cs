@@ -97,7 +97,6 @@ namespace BirdStudioRefactor
         // TODO ugly, ugly function >.<
         private void _userEdit(int pos, int deleteLength, string insert)
         {
-            // TODO re-obtain stage if needed
             int startOfLine = text.LastIndexOf('\n', pos - 1) + 1;
             int endOfFirstLine = text.IndexOf('\n', pos);
             if (endOfFirstLine == -1)

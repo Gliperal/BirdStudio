@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -28,7 +29,43 @@ namespace BirdStudioRefactor
             updateColorScheme();
             if (UserPreferences.get("show help", "false") == "true")
                 helpBlock.Visibility = Visibility.Visible;
-            TcpManager.connect(); // TODO Remove (find a better way to handle the first connection than listenForMessages)
+            new Thread(new ThreadStart(TalkWithGame)).Start();
+        }
+
+        private void TalkWithGame()
+        {
+            while (true)
+            {
+                if (!TcpManager.isConnected())
+                    TcpManager.connect(); // TODO need to update on main thread probably ??
+                Message message = TcpManager.listenForMessage();
+                if (message == null)
+                    continue;
+                switch (message.type)
+                {
+                    case "SaveReplay":
+                        /*
+                        string levelName = (string)message.args[0];
+                        string replayBuffer = (string)message.args[1];
+                        int breakpoint = (int)message.args[2];
+                        OnReplaySaved(levelName, replayBuffer, breakpoint);
+                        */
+                        break;
+                    case "Frame":
+                        // TODO when to set playback frame back to -1?
+                        int currentFrame = (int)message.args[0];
+                        editor.showPlaybackFrame(currentFrame);
+                        float pos_x = (float)message.args[1];
+                        float pos_y = (float)message.args[2];
+                        float vel_x = (float)message.args[3];
+                        float vel_y = (float)message.args[4];
+                        // TODO
+                        break;
+                    default:
+                        // TODO Log the unknown message.type
+                        break;
+                }
+            }
         }
 
         private void NewCommand_Execute(object sender, RoutedEventArgs e)
@@ -125,8 +162,7 @@ namespace BirdStudioRefactor
         {
             foreach (KeyValuePair<string, SolidColorBrush> kvp in ColorScheme.resources)
                 Resources[kvp.Key] = kvp.Value;
-            // TODO
-            editor.showPlaybackFrame(20);
+            // TODO Syntax highlighting
         }
 
         private void Menu_LightMode(object sender, RoutedEventArgs e)
@@ -156,14 +192,5 @@ namespace BirdStudioRefactor
                 UserPreferences.set("show help", "true");
             }
         }
-
-        /* TODO
-        private void showPlaybackFrame()
-        {
-            if (currentFrame == -1)
-                return;
-            // TODO
-        }
-        */
     }
 }

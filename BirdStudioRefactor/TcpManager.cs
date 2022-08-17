@@ -54,7 +54,7 @@ namespace BirdStudioRefactor
 
         public static void connect()
         {
-            if (tcp != null && tcp.Connected)
+            if (isConnected())
                 return;
             tcp = new TcpClient();
             while (true)
@@ -74,12 +74,13 @@ namespace BirdStudioRefactor
 
         public static bool isConnected()
         {
-            return tcp.Connected;
+            return tcp != null && tcp.Connected;
         }
 
         public static Message listenForMessage()
         {
-            connect();
+            if (!tcp.Connected)
+                return null;
             try
             {
                 return new Message(stream);
