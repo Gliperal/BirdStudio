@@ -1,11 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net.Sockets;
 using System.Threading;
-using System.Collections.Generic;
 
 using TasBird.Link;
-
-// TODO Fix Alex's crash
 
 namespace BirdStudioRefactor
 {
@@ -85,7 +84,7 @@ namespace BirdStudioRefactor
             {
                 return new Message(stream);
             }
-            catch(Exception e) when (e is SocketException || e is FormatException)
+            catch(Exception e) when (e is SocketException || e is FormatException || e is IOException)
             {
                 // FormatException: Unable to process the next stream data, but
                 // bytes were still consumed. Any attempts to continue with the
@@ -93,6 +92,9 @@ namespace BirdStudioRefactor
                 // a reconnect.
                 // SocketException: Lost connection to TCP server, likely
                 // because the game was closed, so disconnect.
+                // IOException: Seems to happen to Alex when closing the game
+                // via the BepinEx terminal window. At the risk of a false
+                // positive, this will also force a reconnect.
                 tcp = null;
                 return null;
             }

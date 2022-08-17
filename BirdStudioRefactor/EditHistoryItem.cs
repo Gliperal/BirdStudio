@@ -2,45 +2,60 @@
 
 namespace BirdStudioRefactor
 {
-    public enum EditType
+    abstract class EditHistoryItem
     {
-        Unknown,
-        ModifyText,
-        NewBranchGroup,
-        AddBranch,
-        ChangeActiveBranch,
-        RenameBranch,
-        RemoveBranch,
-        DeleteBranchGroup,
-    };
-
-    class EditHistoryItem
-    {
-        public EditType type;
         public List<int> targetID;
+    }
 
-        // text edits
+    class ModifyTextEdit : EditHistoryItem
+    {
         public int pos;
         public string textRemoved;
         public string textInserted;
         public int cursorPosInitial;
         public int cursorPosFinal;
+    }
 
-        // branch group edits
-        public int branchIndex;
-        public int activeBranchInitial;
-        public int activeBranchFinal;
-        public Branch branchCopy;
-
-        // branch edits
+    class NewBranchGroupEdit : EditHistoryItem
+    {
         public int nodeIndex;
-        public string branchNameInitial;
-        public string branchNameFinal;
         public string preText;
         public BranchGroup branchGroupCopy;
         public string postText;
+        public TASEditor parent;
+    }
 
-        // TODO Find a better way to do this
+    class AddBranchEdit : EditHistoryItem
+    {
+        public int activeBranchInitial;
+        public Branch branchCopy;
+    }
+
+    class ChangeActiveBranchEdit : EditHistoryItem
+    {
+        public int activeBranchInitial;
+        public int activeBranchFinal;
+    }
+
+    class RenameBranchEdit : EditHistoryItem
+    {
+        public string branchNameInitial;
+        public string branchNameFinal;
+    }
+
+    class RemoveBranchEdit : EditHistoryItem
+    {
+        public int branchIndex;
+        public int activeBranchFinal;
+        public Branch branchCopy;
+    }
+
+    class DeleteBranchGroupEdit : EditHistoryItem
+    {
+        public int nodeIndex;
+        public string preText;
+        public BranchGroup branchGroupCopy;
+        public string postText;
         public TASEditor parent;
     }
 }

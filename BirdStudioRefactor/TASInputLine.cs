@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace BirdStudioRefactor
 {
@@ -7,7 +8,7 @@ namespace BirdStudioRefactor
         public int frames;
         public string buttons;
 
-        private TASInputLine(int frames, string buttons)
+        public TASInputLine(int frames, string buttons)
         {
             this.frames = frames;
             this.buttons = buttons;
@@ -32,8 +33,31 @@ namespace BirdStudioRefactor
             {
                 return new TASInputLine(Int32.Parse(frames), buttons);
             }
-            catch { }
-            return null;
+            catch
+            {
+                return null;
+            }
+        }
+
+        public string toText()
+        {
+            if (buttons.Length == 0)
+                return String.Format("{0,4}", frames);
+            const string order = TASInputs.BUTTONS;
+            List<char> orderedButtons = new List<char>();
+            foreach (char c in order)
+                if (buttons.Contains(c))
+                    orderedButtons.Add(c);
+            string buttonsStr = string.Join(",", orderedButtons);
+            if (buttonsStr == "")
+                return String.Format("{0,4}", frames);
+            else
+                return String.Format("{0,4},{1}", frames, buttonsStr);
+        }
+
+        public static bool isInputLine(string line)
+        {
+            return from(line) != null;
         }
     }
 }

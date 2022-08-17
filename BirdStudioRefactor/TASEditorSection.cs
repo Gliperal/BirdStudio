@@ -7,189 +7,6 @@ using ICSharpCode.AvalonEdit;
 
 namespace BirdStudioRefactor
 {
-    public class InputLine
-    {
-        public int frames;
-        public string buttons;
-
-        public InputLine(int frames, string buttons)
-        {
-            this.frames = frames;
-            this.buttons = buttons;
-        }
-
-        public static InputLine from(string line)
-        {
-            line = line.Trim();
-            if (line == "" || line.StartsWith('#') || line.StartsWith('>'))
-                return null;
-            int split = line.LastIndexOfAny("0123456789".ToCharArray()) + 1;
-            // If no frame number is found, split will be at 0.
-            string frames = line.Substring(0, split);
-            string buttons = line.Substring(split).ToUpper();
-            buttons = string.Join("", buttons.Split(','));
-            foreach (char c in buttons)
-                if (!Char.IsLetter(c))
-                    return null;
-            if (split == 0)
-                return new InputLine(0, buttons);
-            try
-            {
-                return new InputLine(Int32.Parse(frames), buttons);
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        // TODO maybe "toText" would be better?
-        public string toTasLine()
-        {
-            if (buttons.Length == 0)
-                return String.Format("{0,4}", frames);
-            const string order = InputsData.BUTTONS;
-            List<char> orderedButtons = new List<char>();
-            foreach (char c in order)
-                if (buttons.Contains(c))
-                    orderedButtons.Add(c);
-            string buttonsStr = string.Join(",", orderedButtons);
-            if (buttonsStr == "")
-                return String.Format("{0,4}", frames);
-            else
-                return String.Format("{0,4},{1}", frames, buttonsStr);
-        }
-
-        public static bool isInputLine(string line)
-        {
-            return from(line) != null;
-        }
-    }
-
-    class InputsData
-    {
-        public const string BUTTONS = "RLUDJXGCQMN";
-
-        private List<InputLine> inputLines;
-        private int frameCount;
-        private List<int> startingFrames; // 1 larger in size than inputLines
-
-        public InputsData(string text)
-        {
-            inputLines = new List<InputLine>();
-            string[] lines = text.Split('\n');
-            foreach (string line in lines)
-                inputLines.Add(InputLine.from(line));
-            countFrames();
-        }
-
-        public InputsData(List<Press> presses)
-        {
-            inputLines = new List<InputLine>();
-            presses.Sort(Press.compareFrames);
-            HashSet<char> state = new HashSet<char>();
-            int frame = 0;
-            foreach (Press press in presses)
-            {
-                if (press.frame > frame)
-                {
-                    inputLines.Add(new InputLine(press.frame - frame, string.Join("", state)));
-                    frame = press.frame;
-                }
-                if (press.on)
-                    state.Add(press.button);
-                else
-                    state.Remove(press.button);
-            }
-            inputLines.Add(new InputLine(1, string.Join("", state)));
-        }
-
-        private void countFrames()
-        {
-            startingFrames = new List<int>();
-            int frame = 0;
-            for (int i = 0; i < inputLines.Count; i++)
-            {
-                startingFrames.Add(frame);
-                if (inputLines[i] != null)
-                    frame += inputLines[i].frames;
-            }
-            startingFrames.Add(frame);
-            frameCount = frame;
-        }
-
-        public List<Press> toPresses()
-        {
-            List<Press> presses = new List<Press>();
-            HashSet<char> state = new HashSet<char>();
-            int frame = 0;
-            foreach (InputLine inputLine in inputLines)
-            {
-                if (inputLine == null)
-                    continue;
-                foreach (char button in BUTTONS)
-                {
-                    bool isOn = inputLine.buttons.Contains(button);
-                    bool wasOn = state.Contains(button);
-                    if (isOn != wasOn)
-                    {
-                        presses.Add(new Press
-                        {
-                            frame = frame,
-                            button = button,
-                            on = isOn
-                        });
-                        if (isOn)
-                            state.Add(button);
-                        else
-                            state.Remove(button);
-                    }
-                }
-                frame += inputLine.frames;
-            }
-            return presses;
-        }
-
-        public string toText()
-        {
-            string text = "";
-            foreach (InputLine inputLine in inputLines)
-                text += inputLine.toTasLine() + '\n';
-            return text;
-        }
-
-        public int startingFrameForLine(int lineNumber)
-        {
-            if (lineNumber < 0 || lineNumber >= inputLines.Count)
-                return -1;
-            return startingFrames[lineNumber];
-        }
-
-        public int endingFrameForLine(int lineNumber)
-        {
-            if (lineNumber < 0 || lineNumber >= inputLines.Count)
-                return -1;
-            return startingFrames[lineNumber + 1];
-        }
-
-        public int[] locateFrame(int frame)
-        {
-            for (int i = 0; i < inputLines.Count; i++)
-            {
-                int lineStartFrame = startingFrames[i];
-                int lineEndFrame = startingFrames[i + 1];
-                if (frame <= lineEndFrame)
-                    return new int[] { i, frame - lineStartFrame };
-            }
-            return new int[] { inputLines.Count - 1, frame - startingFrames[inputLines.Count] };
-        }
-
-        public int totalFrames()
-        {
-            return frameCount;
-        }
-    }
-
     // TODO Maybe rename this to something like InputsBlock or InputsSection
     class TASEditorSection : IBranchSection
     {
@@ -198,7 +15,7 @@ namespace BirdStudioRefactor
         private LineHighlighter bgRenderer;
 
         private string text;
-        private InputsData inputsData;
+        private TASInputs inputsData;
 
         public TASEditorSection(string initialText, TASEditor parent)
         {
@@ -242,16 +59,19 @@ namespace BirdStudioRefactor
             return component;
         }
 
-        public InputsData getInputsData()
+        public TASInputs getInputsData()
         {
             if (inputsData != null)
                 return inputsData;
-            inputsData = new InputsData(text);
+            inputsData = new TASInputs(text);
             return inputsData;
         }
 
-        public void performEdit(EditHistoryItem edit)
+        public void performEdit(EditHistoryItem e)
         {
+            if (!(e is ModifyTextEdit))
+                throw new EditTypeNotSupportedException();
+            ModifyTextEdit edit = (ModifyTextEdit)e;
             text = component.Text;
             // TODO Better way to perform insertions/deletions on the avalon editor?
             // TextLocation deleteStart = component.Document.GetLocation(pos);
@@ -262,8 +82,11 @@ namespace BirdStudioRefactor
             inputsData = null;
         }
 
-        public void revertEdit(EditHistoryItem edit)
+        public void revertEdit(EditHistoryItem e)
         {
+            if (!(e is ModifyTextEdit))
+                throw new EditTypeNotSupportedException();
+            ModifyTextEdit edit = (ModifyTextEdit)e;
             text = component.Text;
             text = text.Substring(0, edit.pos) + edit.textRemoved + text.Substring(edit.pos + edit.textInserted.Length);
             component.Text = text;
@@ -282,7 +105,7 @@ namespace BirdStudioRefactor
             int endOfLastLine = text.IndexOf('\n', pos + deleteLength);
             if (endOfLastLine == -1)
                 endOfLastLine = text.Length;
-            bool firstLineIsInputLine = InputLine.isInputLine(text.Substring(startOfLine, endOfFirstLine - startOfLine));
+            bool firstLineIsInputLine = TASInputLine.isInputLine(text.Substring(startOfLine, endOfFirstLine - startOfLine));
             if (firstLineIsInputLine && deleteLength == 0)
             {
                 if (insert == "#")
@@ -303,7 +126,7 @@ namespace BirdStudioRefactor
                 }
             }
             string line = text.Substring(startOfLine, pos - startOfLine) + insert + text.Substring(pos + deleteLength, endOfLastLine - pos - deleteLength);
-            InputLine inputLine = InputLine.from(line);
+            TASInputLine inputLine = TASInputLine.from(line);
             if (inputLine != null && !insert.Contains('\n'))
             {
                 HashSet<char> buttons = new HashSet<char>();
@@ -314,7 +137,7 @@ namespace BirdStudioRefactor
                     else
                         buttons.Add(c);
                 }
-                string reformattedLine = new InputLine(inputLine.frames, string.Join("", buttons)).toTasLine();
+                string reformattedLine = new TASInputLine(inputLine.frames, string.Join("", buttons)).toText();
 
                 // Calculate new caret position, based on where caret appeared relative to the frame number
                 int caret = pos + insert.Length - startOfLine;
@@ -322,9 +145,8 @@ namespace BirdStudioRefactor
                 int i = StringUtil.firstIndexThatIsNot(line, " 0");
                 for (; i < caret && Char.IsDigit(line[i]); i++)
                     newCaret++;
-                EditHistoryItem edit = new EditHistoryItem
+                EditHistoryItem edit = new ModifyTextEdit
                 {
-                    type = EditType.ModifyText,
                     pos = startOfLine,
                     textRemoved = text.Substring(startOfLine, endOfLastLine - startOfLine),
                     textInserted = reformattedLine,
@@ -335,9 +157,8 @@ namespace BirdStudioRefactor
             }
             else
             {
-                EditHistoryItem edit = new EditHistoryItem
+                EditHistoryItem edit = new ModifyTextEdit
                 {
-                    type = EditType.ModifyText,
                     pos = pos,
                     textRemoved = text.Substring(pos, deleteLength),
                     textInserted = insert,
@@ -388,9 +209,8 @@ namespace BirdStudioRefactor
             // Catch copy/paste and drag&drop changes and include them in the edit history
             if (component.Text != text)
             {
-                parent.editPerformed(this, new EditHistoryItem
+                parent.editPerformed(this, new ModifyTextEdit
                 {
-                    type = EditType.ModifyText,
                     pos = 0,
                     textRemoved = text,
                     textInserted = component.Text,

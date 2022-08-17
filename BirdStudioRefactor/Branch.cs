@@ -53,51 +53,56 @@ namespace BirdStudioRefactor
 
         public void performEdit(EditHistoryItem edit)
         {
-            switch(edit.type)
+            if (edit is AddBranchEdit)
             {
-                case EditType.AddBranch:
-                    branches.Add(edit.branchCopy);
-                    activeBranch = branches.Count - 1;
-                    // TODO any time the active branch changes, the focussed element should also change
-                    return;
-                case EditType.ChangeActiveBranch:
-                    activeBranch = edit.activeBranchFinal;
-                    return;
-                case EditType.RemoveBranch:
-                    branches.RemoveAt(edit.branchIndex);
-                    activeBranch = edit.activeBranchFinal;
-                    return;
-                default:
-                    throw new EditTypeNotSupportedException();
+                AddBranchEdit addEdit = (AddBranchEdit)edit;
+                branches.Add(addEdit.branchCopy);
+                activeBranch = branches.Count - 1;
+                // TODO any time the active branch changes, the focussed element should also change
             }
+            else if (edit is ChangeActiveBranchEdit)
+            {
+                ChangeActiveBranchEdit changeEdit = (ChangeActiveBranchEdit)edit;
+                activeBranch = changeEdit.activeBranchFinal;
+            }
+            else if (edit is RemoveBranchEdit)
+            {
+                RemoveBranchEdit removeEdit = (RemoveBranchEdit)edit;
+                branches.RemoveAt(removeEdit.branchIndex);
+                activeBranch = removeEdit.activeBranchFinal;
+            }
+            else
+                throw new EditTypeNotSupportedException();
         }
 
         public void revertEdit(EditHistoryItem edit)
         {
-            switch (edit.type)
+            if (edit is AddBranchEdit)
             {
-                case EditType.AddBranch:
-                    branches.RemoveAt(branches.Count - 1);
-                    activeBranch = edit.activeBranchInitial;
-                    return;
-                case EditType.ChangeActiveBranch:
-                    activeBranch = edit.activeBranchInitial;
-                    return;
-                case EditType.RemoveBranch:
-                    branches.Insert(edit.branchIndex, edit.branchCopy.clone());
-                    activeBranch = edit.branchIndex;
-                    return;
-                default:
-                    throw new EditTypeNotSupportedException();
+                AddBranchEdit addEdit = (AddBranchEdit)edit;
+                branches.RemoveAt(branches.Count - 1);
+                activeBranch = addEdit.activeBranchInitial;
             }
+            else if (edit is ChangeActiveBranchEdit)
+            {
+                ChangeActiveBranchEdit changeEdit = (ChangeActiveBranchEdit)edit;
+                activeBranch = changeEdit.activeBranchInitial;
+            }
+            else if (edit is RemoveBranchEdit)
+            {
+                RemoveBranchEdit removeEdit = (RemoveBranchEdit)edit;
+                branches.Insert(removeEdit.branchIndex, removeEdit.branchCopy.clone());
+                activeBranch = removeEdit.branchIndex;
+            }
+            else
+                throw new EditTypeNotSupportedException();
         }
 
         public EditHistoryItem addBranchEdit(TASEditor parent)
         {
             // TODO name?
-            return new EditHistoryItem
+            return new AddBranchEdit
             {
-                type = EditType.AddBranch,
                 activeBranchInitial = activeBranch,
                 branchCopy = Branch.fromFile("new branch", parent),
             };
@@ -105,8 +110,7 @@ namespace BirdStudioRefactor
 
         public EditHistoryItem cycleBranchEdit()
         {
-            return new EditHistoryItem {
-                type = EditType.ChangeActiveBranch,
+            return new ChangeActiveBranchEdit {
                 activeBranchInitial = activeBranch,
                 activeBranchFinal = (activeBranch + 1) % branches.Count,
             };
@@ -116,9 +120,8 @@ namespace BirdStudioRefactor
         {
             if (branches.Count <= 1)
                 return null;
-            return new EditHistoryItem
+            return new RemoveBranchEdit
             {
-                type = EditType.RemoveBranch,
                 branchIndex = activeBranch,
                 activeBranchFinal = (activeBranch > 0) ? activeBranch - 1 : 0,
                 branchCopy = branches[activeBranch].clone(),
@@ -373,9 +376,8 @@ namespace BirdStudioRefactor
 
         public EditHistoryItem renameBranchEdit(string newName)
         {
-            return new EditHistoryItem
+            return new RenameBranchEdit
             {
-                type = EditType.RenameBranch,
                 branchNameInitial = name,
                 branchNameFinal = newName,
             };
@@ -387,9 +389,8 @@ namespace BirdStudioRefactor
             string[] text = inputs.splitOutBranch();
             List<Branch> branches = new List<Branch>();
             branches.Add(fromFile(text[1], parent));
-            return new EditHistoryItem
+            return new NewBranchGroupEdit
             {
-                type = EditType.NewBranchGroup,
                 nodeIndex = inputBlockIndex,
                 preText = text[0],
                 branchGroupCopy = new BranchGroup(branches),
@@ -400,9 +401,8 @@ namespace BirdStudioRefactor
 
         internal EditHistoryItem deleteBranchGroupEdit(int branchGroupIndex, TASEditor parent)
         {
-            return new EditHistoryItem
+            return new DeleteBranchGroupEdit
             {
-                type = EditType.DeleteBranchGroup,
                 nodeIndex = branchGroupIndex - 1,
                 preText = ((TASEditorSection)nodes[branchGroupIndex - 1]).getText(),
                 branchGroupCopy = (BranchGroup)nodes[branchGroupIndex].clone(),
@@ -413,53 +413,59 @@ namespace BirdStudioRefactor
 
         public void performEdit(EditHistoryItem edit)
         {
-            switch (edit.type)
+            if (edit is RenameBranchEdit)
             {
-                case EditType.RenameBranch:
-                    name = edit.branchNameFinal;
-                    break;
-                case EditType.NewBranchGroup:
-                    // TODO any time things are deleted, the focussed element should change
-                    nodes.RemoveAt(edit.nodeIndex);
-                    nodes.InsertRange(edit.nodeIndex, new IBranchSection[] {
-                        new TASEditorSection(edit.preText, edit.parent),
-                        edit.branchGroupCopy,
-                        new TASEditorSection(edit.postText, edit.parent),
-                    });
-                    break;
-                case EditType.DeleteBranchGroup:
-                    nodes.RemoveRange(edit.nodeIndex, 3);
-                    string text = edit.preText + "\n" + edit.postText;
-                    nodes.Insert(edit.nodeIndex, new TASEditorSection(text, edit.parent));
-                    break;
-                default:
-                    throw new EditTypeNotSupportedException();
+                RenameBranchEdit renameEdit = (RenameBranchEdit)edit;
+                name = renameEdit.branchNameFinal;
             }
+            else if (edit is NewBranchGroupEdit)
+            {
+                NewBranchGroupEdit newEdit = (NewBranchGroupEdit)edit;
+                // TODO any time things are deleted, the focussed element should change
+                nodes.RemoveAt(newEdit.nodeIndex);
+                nodes.InsertRange(newEdit.nodeIndex, new IBranchSection[] {
+                    new TASEditorSection(newEdit.preText, newEdit.parent),
+                    newEdit.branchGroupCopy,
+                    new TASEditorSection(newEdit.postText, newEdit.parent),
+                });
+            }
+            else if (edit is DeleteBranchGroupEdit)
+            {
+                DeleteBranchGroupEdit deleteEdit = (DeleteBranchGroupEdit)edit;
+                nodes.RemoveRange(deleteEdit.nodeIndex, 3);
+                string text = deleteEdit.preText + "\n" + deleteEdit.postText;
+                nodes.Insert(deleteEdit.nodeIndex, new TASEditorSection(text, deleteEdit.parent));
+            }
+            else
+                throw new EditTypeNotSupportedException();
         }
 
         public void revertEdit(EditHistoryItem edit)
         {
-            switch (edit.type)
+            if (edit is RenameBranchEdit)
             {
-                case EditType.RenameBranch:
-                    name = edit.branchNameInitial;
-                    break;
-                case EditType.NewBranchGroup:
-                    nodes.RemoveRange(edit.nodeIndex, 3);
-                    string text = edit.preText + edit.branchGroupCopy.getText() + edit.postText;
-                    nodes.Insert(edit.nodeIndex, new TASEditorSection(text, edit.parent));
-                    break;
-                case EditType.DeleteBranchGroup:
-                    nodes.RemoveAt(edit.nodeIndex);
-                    nodes.InsertRange(edit.nodeIndex, new IBranchSection[] {
-                        new TASEditorSection(edit.preText, edit.parent),
-                        edit.branchGroupCopy,
-                        new TASEditorSection(edit.postText, edit.parent),
-                    });
-                    break;
-                default:
-                    throw new EditTypeNotSupportedException();
+                RenameBranchEdit renameEdit = (RenameBranchEdit)edit;
+                name = renameEdit.branchNameInitial;
             }
+            else if (edit is NewBranchGroupEdit)
+            {
+                NewBranchGroupEdit newEdit = (NewBranchGroupEdit)edit;
+                nodes.RemoveRange(newEdit.nodeIndex, 3);
+                string text = newEdit.preText + newEdit.branchGroupCopy.getText() + newEdit.postText;
+                nodes.Insert(newEdit.nodeIndex, new TASEditorSection(text, newEdit.parent));
+            }
+            else if (edit is DeleteBranchGroupEdit)
+            {
+                DeleteBranchGroupEdit deleteEdit = (DeleteBranchGroupEdit)edit;
+                nodes.RemoveAt(deleteEdit.nodeIndex);
+                nodes.InsertRange(deleteEdit.nodeIndex, new IBranchSection[] {
+                        new TASEditorSection(deleteEdit.preText, deleteEdit.parent),
+                        deleteEdit.branchGroupCopy,
+                        new TASEditorSection(deleteEdit.postText, deleteEdit.parent),
+                    });
+            }
+            else
+                throw new EditTypeNotSupportedException();
         }
 
         public int showPlaybackFrame(int frame)

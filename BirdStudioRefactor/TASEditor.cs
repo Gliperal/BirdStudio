@@ -36,7 +36,7 @@ namespace BirdStudioRefactor
         {
             target.performEdit(edit);
             editPerformed(target, edit);
-            if (edit.type != EditType.ModifyText)
+            if (!(edit is ModifyTextEdit))
                 reloadComponents();
         }
 
@@ -62,7 +62,7 @@ namespace BirdStudioRefactor
             IEditable target = masterBranch.getEditable(edit.targetID);
             target.revertEdit(edit);
             editHistoryLocation--;
-            if (edit.type != EditType.ModifyText)
+            if (!(edit is ModifyTextEdit))
                 reloadComponents();
             // TODO change focus to sections[edit.sectionIndex]
             fileChanged();
@@ -79,7 +79,7 @@ namespace BirdStudioRefactor
             IEditable target = masterBranch.getEditable(edit.targetID);
             target.performEdit(edit);
             editHistoryLocation++;
-            if (edit.type != EditType.ModifyText)
+            if (!(edit is ModifyTextEdit))
                 reloadComponents();
             // TODO change focus to sections[edit.sectionIndex]
             fileChanged();
@@ -198,7 +198,7 @@ namespace BirdStudioRefactor
         private void _watch(int breakpoint)
         {
             string text = masterBranch.getText();
-            InputsData tas = new InputsData(text);
+            TASInputs tas = new TASInputs(text);
             List<Press> presses = tas.toPresses();
             Replay replay = new Replay(presses);
             string replayBuffer = replay.writeString();
