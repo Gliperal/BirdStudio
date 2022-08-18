@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
+using System;
 
 namespace BirdStudioRefactor
 {
@@ -191,11 +192,37 @@ namespace BirdStudioRefactor
             return masterBranch.toFile();
         }
 
+        public void onReplaySaved(string levelName, TASInputs newInputs)
+        {
+            App.Current.Dispatcher.Invoke((Action)delegate // need to update on main thread
+            {
+                string stage = _getStage();
+                if (levelName == stage)
+                    masterBranch.updateInputs(newInputs.getInputLines(), true);
+                else
+                {
+                    // TODO update to a different level: would you like to open?
+                    // no // yes (save current file) // yes (discard changes to current file)
+                    _importFromFile(newInputs.toText(levelName, 0));
+                }
+            });
+        }
+
         public void showPlaybackFrame(int frame)
         {
             playbackFrame = frame;
             if (frame != -1)
                 masterBranch.showPlaybackFrame(frame);
+        }
+
+        private string _getStage(string text = null)
+        {
+            if (text == null)
+                text = masterBranch.getText();
+            foreach (string line in text.Split('\n'))
+                if (line.Trim().StartsWith(">stage "))
+                    return line.Trim().Substring(7);
+            return null;
         }
 
         private void _watch(int breakpoint)
@@ -205,11 +232,7 @@ namespace BirdStudioRefactor
             List<Press> presses = tas.toPresses();
             Replay replay = new Replay(presses);
             string replayBuffer = replay.writeString();
-            string stage = null;
-            foreach (string line in text.Split('\n'))
-                if (line.Trim().StartsWith(">stage "))
-                    stage = line.Trim().Substring(7);
-            TcpManager.sendLoadReplayCommand(stage, replayBuffer, breakpoint);
+            TcpManager.sendLoadReplayCommand(_getStage(text), replayBuffer, breakpoint);
             tasEditedSinceLastWatch = false;
         }
 

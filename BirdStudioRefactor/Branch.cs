@@ -104,7 +104,7 @@ namespace BirdStudioRefactor
             return new AddBranchEdit
             {
                 activeBranchInitial = activeBranch,
-                branchCopy = Branch.fromFile("new branch", parent),
+                branchCopy = Branch.fromText("unnamed branch", "", parent),
             };
         }
 
@@ -198,6 +198,17 @@ namespace BirdStudioRefactor
                         throw new FormatException("Unexpected end of file (potentially unmatched >startbranch)");
                 }
             }
+        }
+
+        public static Branch fromText(string name, string text, TASEditor parent)
+        {
+            List<IBranchSection> nodes = new List<IBranchSection>();
+            nodes.Add(new TASEditorSection(text, parent));
+            return new Branch
+            {
+                name = name,
+                nodes = nodes,
+            };
         }
 
         public static Branch fromFile(string text, TASEditor parent)
@@ -388,10 +399,12 @@ namespace BirdStudioRefactor
             TASEditorSection inputs = (TASEditorSection)nodes[inputBlockIndex];
             string[] text = inputs.splitOutBranch();
             List<Branch> branches = new List<Branch>();
-            branches.Add(fromFile(text[1], parent));
+            branches.Add(fromText("unnamed branch", "", parent));
+            branches.Add(fromText("main branch", text[1], parent));
             return new NewBranchGroupEdit
             {
                 nodeIndex = inputBlockIndex,
+                initialText = inputs.getText(),
                 preText = text[0],
                 branchGroupCopy = new BranchGroup(branches),
                 postText = text[2],
@@ -409,6 +422,30 @@ namespace BirdStudioRefactor
                 postText = ((TASEditorSection)nodes[branchGroupIndex + 1]).getText(),
                 parent = parent,
             };
+        }
+
+        internal bool updateInputs(List<TASInputLine> newInputs, bool force)
+        {
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                bool lastChance = force && (i == nodes.Count - 1);
+                if (nodes[i] is TASEditorSection)
+                {
+                    TASEditorSection inputNode = (TASEditorSection)nodes[i];
+                    bool done = inputNode.updateInputs(newInputs, lastChance, this, i);
+                    if (done)
+                        return true;
+                }
+                else
+                {
+                    BranchGroup branchNode = (BranchGroup)nodes[i];
+                    Branch activeBranch = branchNode.branches[branchNode.activeBranch];
+                    bool done = activeBranch.updateInputs(newInputs, lastChance);
+                    if (done)
+                        return true;
+                }
+            }
+            return false;
         }
 
         public void performEdit(EditHistoryItem edit)
@@ -451,7 +488,7 @@ namespace BirdStudioRefactor
             {
                 NewBranchGroupEdit newEdit = (NewBranchGroupEdit)edit;
                 nodes.RemoveRange(newEdit.nodeIndex, 3);
-                string text = newEdit.preText + newEdit.branchGroupCopy.getText() + newEdit.postText;
+                string text = newEdit.initialText;
                 nodes.Insert(newEdit.nodeIndex, new TASEditorSection(text, newEdit.parent));
             }
             else if (edit is DeleteBranchGroupEdit)

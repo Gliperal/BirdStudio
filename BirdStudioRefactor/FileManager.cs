@@ -127,7 +127,7 @@ namespace BirdStudioRefactor
                     List<Press> presses = replay.toPresses();
                     TASInputs inputs = new TASInputs(presses);
                     _setTasFile(null);
-                    _importFromFile(">stage unknown\n>rerecords 0\n\n" + inputs.toText());
+                    _importFromFile(inputs.toText("unknown", 0));
                     return;
                 }
                 catch (FormatException ex) { }

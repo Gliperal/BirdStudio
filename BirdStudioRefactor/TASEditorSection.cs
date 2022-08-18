@@ -97,7 +97,9 @@ namespace BirdStudioRefactor
         // TODO ugly, ugly function >.<
         private void _userEdit(int pos, int deleteLength, string insert)
         {
-            int startOfLine = text.LastIndexOf('\n', pos - 1) + 1;
+            int startOfLine = 0;
+            if (pos > 0)
+                startOfLine = text.LastIndexOf('\n', pos - 1) + 1;
             int endOfFirstLine = text.IndexOf('\n', pos);
             if (endOfFirstLine == -1)
                 endOfFirstLine = text.Length;
@@ -236,12 +238,17 @@ namespace BirdStudioRefactor
         public string[] splitOutBranch()
         {
             if (component.SelectionLength == 0)
+            {
+                int splitPoint = 0;
+                if (component.CaretOffset != 0)
+                    splitPoint = text.LastIndexOf('\n', component.CaretOffset - 1) + 1;
                 return new string[]
                 {
-                    text.Substring(0, component.CaretOffset),
-                    text.Substring(component.CaretOffset),
+                    text.Substring(0, splitPoint),
+                    text.Substring(splitPoint),
                     ""
                 };
+            }
             else
                 return new string[]
                 {
@@ -265,6 +272,58 @@ namespace BirdStudioRefactor
             {
                 component.TextArea.TextView.Redraw();
             });
+        }
+
+        public bool updateInputs(List<TASInputLine> newInputs, bool force, Branch target, int nodeIndex)
+        {
+            List<TASInputLine> inputLines = getInputsData().getInputLines();
+            for (int i = 0; i < inputLines.Count && newInputs.Count > 0; i++)
+            {
+                if (inputLines[i] == null)
+                    continue;
+                if (inputLines[i].Equals(newInputs[0]))
+                    newInputs.RemoveAt(0);
+                else
+                {
+                    int split = StringUtil.nthIndexOf(text, '\n', i);
+                    string preText = text.Substring(0, split);
+                    string oldBranchText = text.Substring(split + 1);
+                    string newBranchText = "";
+                    foreach (TASInputLine inputLine in newInputs)
+                        newBranchText += inputLine.toText() + '\n';
+                    List<Branch> branches = new List<Branch>();
+                    branches.Add(Branch.fromText("recorded inputs", newBranchText, parent));
+                    branches.Add(Branch.fromText("main branch", oldBranchText, parent));
+                    parent.requestEdit(target, new NewBranchGroupEdit
+                    {
+                        nodeIndex = nodeIndex,
+                        initialText = text,
+                        preText = preText,
+                        branchGroupCopy = new BranchGroup(branches),
+                        postText = "",
+                        parent = parent,
+                    });
+                    return true;
+                }
+            }
+            if (newInputs.Count == 0)
+                return true;
+            if (force)
+            {
+                string addedText = "";
+                foreach (TASInputLine inputLine in newInputs)
+                    addedText += inputLine.toText() + '\n';
+                parent.requestEdit(this, new ModifyTextEdit
+                {
+                    pos = text.Length,
+                    textRemoved = "",
+                    textInserted = "\n" + addedText,
+                    cursorPosInitial = text.Length,
+                    cursorPosFinal = text.Length
+                });
+                return true;
+            }
+            return false;
         }
     }
 }

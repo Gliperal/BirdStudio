@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Windows;
 using System.Windows.Input;
@@ -44,12 +45,10 @@ namespace BirdStudioRefactor
                 switch (message.type)
                 {
                     case "SaveReplay":
-                        /*
                         string levelName = (string)message.args[0];
                         string replayBuffer = (string)message.args[1];
                         int breakpoint = (int)message.args[2];
                         OnReplaySaved(levelName, replayBuffer, breakpoint);
-                        */
                         break;
                     case "Frame":
                         // TODO when to set playback frame back to -1?
@@ -66,6 +65,19 @@ namespace BirdStudioRefactor
                         break;
                 }
             }
+        }
+
+        private void OnReplaySaved(string levelName, string replayBuffer, int breakpoint)
+        {
+            Replay replay;
+            try
+            {
+                replay = new Replay(replayBuffer, false);
+            }
+            catch (FormatException e) { return; }
+            List<Press> presses = replay.toPresses();
+            TASInputs newInputs = new TASInputs(presses);
+            editor.onReplaySaved(levelName, newInputs);
         }
 
         private void NewCommand_Execute(object sender, RoutedEventArgs e)

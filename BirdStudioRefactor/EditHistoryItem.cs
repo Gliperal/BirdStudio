@@ -19,6 +19,7 @@ namespace BirdStudioRefactor
     class NewBranchGroupEdit : EditHistoryItem
     {
         public int nodeIndex;
+        public string initialText;
         public string preText;
         public BranchGroup branchGroupCopy;
         public string postText;

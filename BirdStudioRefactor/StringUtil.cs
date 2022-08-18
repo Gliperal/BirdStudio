@@ -10,5 +10,19 @@
                     return i;
             return i;
         }
+
+        public static int nthIndexOf(string str, char c, int n)
+        {
+            int i = -1;
+            for (int _ = 0; _ < n; _++)
+            {
+                if (i > str.Length - 1)
+                    return -1;
+                i = str.IndexOf(c, i + 1);
+                if (i == -1)
+                    return -1;
+            }
+            return i;
+        }
     }
 }

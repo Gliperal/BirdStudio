@@ -86,11 +86,18 @@ namespace BirdStudioRefactor
             return presses;
         }
 
-        public string toText()
+        public List<TASInputLine> getInputLines()
+        {
+            return inputLines;
+        }
+
+        public string toText(string stage = null, int rerecords = 0)
         {
             string text = "";
             foreach (TASInputLine inputLine in inputLines)
                 text += inputLine.toText() + '\n';
+            if (stage != null)
+                text = ">stage " + stage + "\n>rerecords " + rerecords + "\n\n" + text;
             return text;
         }
 
