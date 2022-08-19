@@ -77,6 +77,8 @@ namespace BirdStudioRefactor
 
         public void redo()
         {
+            if (!canRedo())
+                return;
             EditHistoryItem edit = editHistory[editHistoryLocation];
             IEditable target = masterBranch.getEditable(edit.targetID);
             target.performEdit(edit);
@@ -259,4 +261,3 @@ namespace BirdStudioRefactor
 // Can maybe use avalonEdit code folding to get the correct line numbers?
 // Use UndoStack.ClearAll() after every change to prevent undo/redo
 // When changing components: component.Focus();
-// https://stackoverflow.com/questions/29175018/how-to-style-avalonedit-scrollbars

@@ -13,6 +13,8 @@ namespace BirdStudioRefactor
     public partial class MainWindow : Window
     {
         private TASEditor editor;
+        private bool lCtrlDown;
+        private bool rCtrlDown;
 
         public MainWindow()
         {
@@ -31,6 +33,8 @@ namespace BirdStudioRefactor
             if (UserPreferences.get("show help", "false") == "true")
                 helpBlock.Visibility = Visibility.Visible;
             new Thread(new ThreadStart(TalkWithGame)).Start();
+            this.PreviewKeyDown += Window_PreviewKeyDown;
+            this.PreviewKeyUp += Window_PreviewKeyUp;
         }
 
         private void TalkWithGame()
@@ -203,6 +207,28 @@ namespace BirdStudioRefactor
                 helpBlock.Visibility = Visibility.Visible;
                 UserPreferences.set("show help", "true");
             }
+        }
+
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            // Workaround for avalonEdit stealing my key gestures
+            if (e.Key == Key.LeftCtrl)
+                lCtrlDown = true;
+            if (e.Key == Key.RightCtrl)
+                rCtrlDown = true;
+            bool ctrlDown = lCtrlDown || rCtrlDown;
+            if (ctrlDown && e.Key == Key.Z)
+                editor.undo();
+            if (ctrlDown && e.Key == Key.Y)
+                editor.redo();
+        }
+
+        private void Window_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.LeftCtrl)
+                lCtrlDown = false;
+            if (e.Key == Key.RightCtrl)
+                rCtrlDown = false;
         }
     }
 }
