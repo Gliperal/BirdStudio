@@ -246,7 +246,7 @@ namespace BirdStudioRefactor
                 {
                     text.Substring(0, splitPoint),
                     text.Substring(splitPoint),
-                    ""
+                    null
                 };
             }
             else

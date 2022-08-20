@@ -57,6 +57,7 @@ namespace BirdStudioRefactor
         public string preText;
         public BranchGroup branchGroupCopy;
         public string postText;
+        public string replacementText;
         public TASEditor parent;
     }
 }

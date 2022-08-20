@@ -2,6 +2,13 @@
 {
     class StringUtil
     {
+        public static string removeSingleNewline(string text)
+        {
+            if (text.EndsWith('\n'))
+                text = text.Substring(0, text.Length - 1);
+            return text;
+        }
+
         public static int firstIndexThatIsNot(string str, string anyOf, int start = 0)
         {
             int i = start;

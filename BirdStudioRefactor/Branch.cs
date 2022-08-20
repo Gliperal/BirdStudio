@@ -150,13 +150,6 @@ namespace BirdStudioRefactor
             return new Branch(this);
         }
 
-        private static string removeSingleNewline(string text)
-        {
-            if (text.EndsWith('\n'))
-                text = text.Substring(0, text.Length - 1);
-            return text;
-        }
-
         private static BranchGroup _makeBranchNode(string firstBranch, ref string text, TASEditor parent)
         {
             List<Branch> branches = new List<Branch>();
@@ -169,7 +162,7 @@ namespace BirdStudioRefactor
                 if (command == ">startbranch" || command == ">branch" || command == ">endbranch")
                 {
                     string inputs = text.Substring(0, lineStart);
-                    inputs = removeSingleNewline(inputs);
+                    inputs = StringUtil.removeSingleNewline(inputs);
                     branch.nodes.Add(new TASEditorSection(inputs, parent));
                     int nextLineStart = lineStart + line.Length;
                     if (nextLineStart < text.Length)
@@ -265,7 +258,8 @@ namespace BirdStudioRefactor
                     components.Add(new Separator());
                     components.Add(branchGroup.headerComponent);
                     components.AddRange(branchGroup.branches[branchGroup.activeBranch].getComponents());
-                    components.Add(new Separator());
+                    if (node != nodes[nodes.Count - 1])
+                        components.Add(new Separator());
                 }
             }
             return components;
@@ -414,14 +408,28 @@ namespace BirdStudioRefactor
 
         internal EditHistoryItem deleteBranchGroupEdit(int branchGroupIndex, TASEditor parent)
         {
-            return new DeleteBranchGroupEdit
+            DeleteBranchGroupEdit edit = new DeleteBranchGroupEdit
             {
-                nodeIndex = branchGroupIndex - 1,
-                preText = ((TASEditorSection)nodes[branchGroupIndex - 1]).getText(),
+                nodeIndex = branchGroupIndex,
                 branchGroupCopy = (BranchGroup)nodes[branchGroupIndex].clone(),
-                postText = ((TASEditorSection)nodes[branchGroupIndex + 1]).getText(),
+                replacementText = "",
                 parent = parent,
             };
+            if (nodes[branchGroupIndex - 1] is TASEditorSection)
+            {
+                edit.nodeIndex = branchGroupIndex - 1;
+                edit.preText = ((TASEditorSection)nodes[branchGroupIndex - 1]).getText();
+                edit.replacementText = edit.preText;
+            }
+            if (nodes[branchGroupIndex + 1] is TASEditorSection)
+            {
+                edit.postText = ((TASEditorSection)nodes[branchGroupIndex + 1]).getText();
+                if (edit.preText == null)
+                    edit.replacementText = edit.postText;
+                else
+                    edit.replacementText += "\n" + edit.postText;
+            }
+            return edit;
         }
 
         internal bool updateInputs(List<TASInputLine> newInputs, bool force)
@@ -460,18 +468,17 @@ namespace BirdStudioRefactor
                 NewBranchGroupEdit newEdit = (NewBranchGroupEdit)edit;
                 // TODO any time things are deleted, the focussed element should change
                 nodes.RemoveAt(newEdit.nodeIndex);
-                nodes.InsertRange(newEdit.nodeIndex, new IBranchSection[] {
-                    new TASEditorSection(newEdit.preText, newEdit.parent),
-                    newEdit.branchGroupCopy,
-                    new TASEditorSection(newEdit.postText, newEdit.parent),
-                });
+                if (newEdit.postText != null)
+                    nodes.Insert(newEdit.nodeIndex, new TASEditorSection(newEdit.postText, newEdit.parent));
+                nodes.Insert(newEdit.nodeIndex, newEdit.branchGroupCopy);
+                nodes.Insert(newEdit.nodeIndex, new TASEditorSection(newEdit.preText, newEdit.parent));
             }
             else if (edit is DeleteBranchGroupEdit)
             {
                 DeleteBranchGroupEdit deleteEdit = (DeleteBranchGroupEdit)edit;
-                nodes.RemoveRange(deleteEdit.nodeIndex, 3);
-                string text = deleteEdit.preText + "\n" + deleteEdit.postText;
-                nodes.Insert(deleteEdit.nodeIndex, new TASEditorSection(text, deleteEdit.parent));
+                int deleteCount = (deleteEdit.preText == null ? 0 : 1) + 1 + (deleteEdit.postText == null ? 0 : 1);
+                nodes.RemoveRange(deleteEdit.nodeIndex, deleteCount);
+                nodes.Insert(deleteEdit.nodeIndex, new TASEditorSection(deleteEdit.replacementText, deleteEdit.parent));
             }
             else
                 throw new EditTypeNotSupportedException();
@@ -487,19 +494,19 @@ namespace BirdStudioRefactor
             else if (edit is NewBranchGroupEdit)
             {
                 NewBranchGroupEdit newEdit = (NewBranchGroupEdit)edit;
-                nodes.RemoveRange(newEdit.nodeIndex, 3);
-                string text = newEdit.initialText;
-                nodes.Insert(newEdit.nodeIndex, new TASEditorSection(text, newEdit.parent));
+                int deleteCount = newEdit.postText == null ? 2 : 3;
+                nodes.RemoveRange(newEdit.nodeIndex, deleteCount);
+                nodes.Insert(newEdit.nodeIndex, new TASEditorSection(newEdit.initialText, newEdit.parent));
             }
             else if (edit is DeleteBranchGroupEdit)
             {
                 DeleteBranchGroupEdit deleteEdit = (DeleteBranchGroupEdit)edit;
                 nodes.RemoveAt(deleteEdit.nodeIndex);
-                nodes.InsertRange(deleteEdit.nodeIndex, new IBranchSection[] {
-                        new TASEditorSection(deleteEdit.preText, deleteEdit.parent),
-                        deleteEdit.branchGroupCopy,
-                        new TASEditorSection(deleteEdit.postText, deleteEdit.parent),
-                    });
+                if (deleteEdit.postText != null)
+                    nodes.Insert(deleteEdit.nodeIndex, new TASEditorSection(deleteEdit.postText, deleteEdit.parent));
+                nodes.Insert(deleteEdit.nodeIndex, deleteEdit.branchGroupCopy);
+                if (deleteEdit.preText != null)
+                    nodes.Insert(deleteEdit.nodeIndex, new TASEditorSection(deleteEdit.preText, deleteEdit.parent));
             }
             else
                 throw new EditTypeNotSupportedException();
