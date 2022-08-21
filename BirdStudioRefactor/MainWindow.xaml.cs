@@ -22,12 +22,12 @@ namespace BirdStudioRefactor
             editor = new TASEditor(this, editorBase);
             if (UserPreferences.get("dark mode", "false") == "true")
             {
-                ColorScheme.DarkMode();
+                ColorScheme.instance().DarkMode();
                 darkModeMenuItem.IsChecked = true;
             }
             else
             {
-                ColorScheme.LightMode();
+                ColorScheme.instance().LightMode();
             }
             updateColorScheme();
             if (UserPreferences.get("show help", "false") == "true")
@@ -176,21 +176,21 @@ namespace BirdStudioRefactor
 
         private void updateColorScheme()
         {
-            foreach (KeyValuePair<string, SolidColorBrush> kvp in ColorScheme.resources)
+            foreach (KeyValuePair<string, SolidColorBrush> kvp in ColorScheme.instance().resources)
                 Resources[kvp.Key] = kvp.Value;
             // TODO Syntax highlighting
         }
 
         private void Menu_LightMode(object sender, RoutedEventArgs e)
         {
-            ColorScheme.LightMode();
+            ColorScheme.instance().LightMode();
             updateColorScheme();
             UserPreferences.set("dark mode", "false");
         }
 
         private void Menu_DarkMode(object sender, RoutedEventArgs e)
         {
-            ColorScheme.DarkMode();
+            ColorScheme.instance().DarkMode();
             updateColorScheme();
             UserPreferences.set("dark mode", "true");
         }

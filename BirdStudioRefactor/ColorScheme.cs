@@ -1,26 +1,56 @@
-﻿using System.Windows.Media;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Reflection;
+using System.IO;
+using System.Linq;
+using System.Windows.Media;
+using System.Xml;
+
 using ICSharpCode.AvalonEdit.Highlighting;
+using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 
 namespace BirdStudioRefactor
 {
     class ColorScheme
     {
-        public static HighlightingBrush comment;
-        public static HighlightingBrush frame;
-        public static HighlightingBrush input;
-        public static Brush activeLineBrush = Brushes.Gainsboro;
-        public static Brush playbackLineBrush = new SolidColorBrush(Color.FromRgb(0xFD, 0xD8, 0x98));
-        public static Brush playbackFrameBrush = Brushes.Black;
-        public static Dictionary<string, SolidColorBrush> resources;
+        private static ColorScheme me;
+        private HighlightingColor commentHighlighting;
+        private HighlightingColor frameHighlighting;
+        private HighlightingColor inputHighlighting;
+        public Brush activeLineBrush = Brushes.Gainsboro;
+        public Brush playbackLineBrush = new SolidColorBrush(Color.FromRgb(0xFD, 0xD8, 0x98));
+        public Brush playbackFrameBrush = Brushes.Black;
+        public Dictionary<string, SolidColorBrush> resources;
+        public IHighlightingDefinition syntaxHighlighting;
 
-        public static void LightMode()
+        private ColorScheme()
         {
-            /*
-            comment = new SimpleHighlightingBrush(Color.FromRgb(0, 0x80, 0));
-            frame = new SimpleHighlightingBrush(Color.FromRgb(0xFF, 0, 0));
-            input = new SimpleHighlightingBrush(Color.FromRgb(0, 0, 0xFF));
-            */
+            Assembly asm = Assembly.GetExecutingAssembly();
+            using (Stream s = asm.GetManifestResourceStream("BirdStudioRefactor.SyntaxHighlighting.xshd"))
+            {
+                using (XmlTextReader reader = new XmlTextReader(s))
+                {
+                    syntaxHighlighting = HighlightingLoader.Load(reader, HighlightingManager.Instance);
+                }
+            }
+            commentHighlighting = syntaxHighlighting.NamedHighlightingColors.First(c => c.Name == "Comment");
+            frameHighlighting = syntaxHighlighting.NamedHighlightingColors.First(c => c.Name == "Frame");
+            inputHighlighting = syntaxHighlighting.NamedHighlightingColors.First(c => c.Name == "Input");
+            LightMode();
+        }
+
+        public static ColorScheme instance()
+        {
+            if (me == null)
+                me = new ColorScheme();
+            return me;
+        }
+
+        public void LightMode()
+        {
+            commentHighlighting.Foreground = new SimpleHighlightingBrush(Color.FromRgb(0, 0x80, 0));
+            frameHighlighting.Foreground = new SimpleHighlightingBrush(Color.FromRgb(0xFF, 0, 0));
+            inputHighlighting.Foreground = new SimpleHighlightingBrush(Color.FromRgb(0, 0, 0xFF));
+
             activeLineBrush = Brushes.Gainsboro;
             playbackLineBrush = new SolidColorBrush(Color.FromRgb(0xFD, 0xD8, 0x98));
             playbackFrameBrush = Brushes.Black;
@@ -59,13 +89,12 @@ namespace BirdStudioRefactor
             resources["ScrollBar.Disabled.Glyph"] = new SolidColorBrush(Color.FromArgb(0xFF, 0xBF, 0xBF, 0xBF));
         }
 
-        public static void DarkMode()
+        public void DarkMode()
         {
-            /*
-            comment = new SimpleHighlightingBrush(Color.FromRgb(0x18, 0xA0, 0x30));
-            frame = new SimpleHighlightingBrush(Color.FromRgb(0xE0, 0x60, 0x40));
-            input = new SimpleHighlightingBrush(Color.FromRgb(0x0A, 0xA0, 0xE0));
-            */
+            commentHighlighting.Foreground = new SimpleHighlightingBrush(Color.FromRgb(0x18, 0xA0, 0x30));
+            frameHighlighting.Foreground = new SimpleHighlightingBrush(Color.FromRgb(0xE0, 0x60, 0x40));
+            inputHighlighting.Foreground = new SimpleHighlightingBrush(Color.FromRgb(0x0A, 0xA0, 0xE0));
+
             activeLineBrush = new SolidColorBrush(Color.FromRgb(0x38, 0x38, 0x38));
             playbackLineBrush = new SolidColorBrush(Color.FromRgb(0x55, 0x48, 0));
             playbackFrameBrush = Brushes.Orange;

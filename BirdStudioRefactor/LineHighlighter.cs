@@ -48,7 +48,7 @@ namespace BirdStudioRefactor
                 foreach (var rect in BackgroundGeometryBuilder.GetRectsForSegment(textView, currentLine))
                 {
                     drawingContext.DrawRectangle(
-                        ColorScheme.activeLineBrush, null,
+                        ColorScheme.instance().activeLineBrush, null,
                         new Rect(rect.Location, new Size(textView.ActualWidth, rect.Height)));
                 }
             }
@@ -59,7 +59,7 @@ namespace BirdStudioRefactor
                 foreach (var rect in BackgroundGeometryBuilder.GetRectsForSegment(textView, docLine))
                 {
                     drawingContext.DrawRectangle(
-                        ColorScheme.playbackLineBrush, null,
+                        ColorScheme.instance().playbackLineBrush, null,
                         new Rect(rect.Location, new Size(textView.ActualWidth, rect.Height))
                     );
                     // This is probably the wrong way to do this
@@ -69,7 +69,7 @@ namespace BirdStudioRefactor
                         FlowDirection.LeftToRight,
                         new Typeface("Consolas"),
                         19,
-                        ColorScheme.playbackFrameBrush,
+                        ColorScheme.instance().playbackFrameBrush,
                         1 //TODO dafuq is pixels per DIP
                     );
                     Point origin = new Point(textView.ActualWidth - text.Width - 5, rect.Top);

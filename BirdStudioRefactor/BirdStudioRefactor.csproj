@@ -14,10 +14,16 @@
 
   <ItemGroup>
     <Resource Include="Icon.ico" />
+    <EmbeddedResource Include="SyntaxHighlighting.xshd" />
   </ItemGroup>
 
   <ItemGroup>
     <EditorConfigFiles Remove="C:\Users\Gliperal\Desktop\code\BirdStudioRefactor\BirdStudioRefactor\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Icon.ico" />
+    <None Remove="SyntaxHighlighting.xshd" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,33 @@
+﻿<SyntaxDefinition xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+	<Color name="Command" foreground="#B010B0" />
+	<Color name="Comment" foreground="#008000" />
+	<Color name="Frame" foreground="#FF0000" />
+	<Color name="Input" foreground="#0000FF" />
+
+	<RuleSet>
+		<Keywords color="Command">
+			<Word>>stage</Word>
+			<Word>>rerecords</Word>
+		</Keywords>
+
+		<Span color="Comment" begin="#" />
+
+		<Rule color="Frame">
+			^\s*		# leading whitespace
+			\d+			# frame number
+			(?=			# to be followed by:
+				(,[A-Z])*	# inputs
+				\s*$		# trailing whitespace
+			)
+		</Rule>
+
+		<Rule color="Input">
+			(?&lt;=		# expected before:
+				^\s*		# leading whitespace
+				\d+			# frame number
+			)
+			(,[A-Z])+	# inputs
+			\s*$		# trailing whitespace
+		</Rule>
+	</RuleSet>
+</SyntaxDefinition>

@@ -29,6 +29,7 @@ namespace BirdStudioRefactor
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Disabled
             };
+            component.SyntaxHighlighting = ColorScheme.instance().syntaxHighlighting;
             bgRenderer = new LineHighlighter(component);
             component.SetResourceReference(Control.ForegroundProperty, "Editor.Foreground");
             component.SetResourceReference(Control.BackgroundProperty, "Editor.Background");
