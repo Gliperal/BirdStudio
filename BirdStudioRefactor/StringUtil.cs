@@ -9,6 +9,15 @@
             return text;
         }
 
+        public static string removeSandwichingNewlines(string text)
+        {
+            if (text.Length == 1)
+                return text;
+            if (text.StartsWith('\n') && text.EndsWith('\n'))
+                text = text.Substring(1, text.Length - 2);
+            return text;
+        }
+
         public static int firstIndexThatIsNot(string str, string anyOf, int start = 0)
         {
             int i = start;

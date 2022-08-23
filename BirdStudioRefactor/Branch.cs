@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Xml;
 
 namespace BirdStudioRefactor
 {
@@ -150,49 +151,6 @@ namespace BirdStudioRefactor
             return new Branch(this);
         }
 
-        private static BranchGroup _makeBranchNode(string firstBranch, ref string text, TASEditor parent)
-        {
-            List<Branch> branches = new List<Branch>();
-            Branch branch = new Branch { name = firstBranch };
-            for (int lineStart = 0;;)
-            {
-                string line = text.Substring(lineStart).Split('\n', 2)[0];
-                string command = line.Split(null, 2)[0];
-                string branchName = line.Substring(command.Length).Trim();
-                if (command == ">startbranch" || command == ">branch" || command == ">endbranch")
-                {
-                    string inputs = text.Substring(0, lineStart);
-                    inputs = StringUtil.removeSingleNewline(inputs);
-                    branch.nodes.Add(new TASEditorSection(inputs, parent));
-                    int nextLineStart = lineStart + line.Length;
-                    if (nextLineStart < text.Length)
-                        nextLineStart++; // skip past newline unless end of file
-                    text = text.Substring(nextLineStart);
-                    lineStart = 0;
-                    if (command == ">startbranch")
-                    {
-                        branch.nodes.Add(_makeBranchNode(branchName, ref text, parent));
-                    }
-                    else if (command == ">branch")
-                    {
-                        branches.Add(branch);
-                        branch = new Branch { name = branchName };
-                    }
-                    else if(command == ">endbranch")
-                    {
-                        branches.Add(branch);
-                        return new BranchGroup(branches);
-                    }
-                }
-                else
-                {
-                    lineStart = text.IndexOf("\n>", lineStart, StringComparison.Ordinal) + 1;
-                    if (lineStart == 0)
-                        throw new FormatException("Unexpected end of file (potentially unmatched >startbranch)");
-                }
-            }
-        }
-
         public static Branch fromText(string name, string text, TASEditor parent)
         {
             List<IBranchSection> nodes = new List<IBranchSection>();
@@ -204,38 +162,54 @@ namespace BirdStudioRefactor
             };
         }
 
-        public static Branch fromFile(string text, TASEditor parent)
+        public static Branch fromXml(XmlNode xml, TASEditor parent)
         {
-            text = text.Replace("\r\n", "\n");
-            text = text + "\n>endbranch";
-            BranchGroup node = _makeBranchNode("", ref text, parent);
-            if (text.Length > 0)
-                throw new FormatException("Unmatched >endbranch");
-            return node.branches[0];
+            XmlNode nameNode = xml.Attributes.GetNamedItem("name");
+            string branchName = (nameNode != null) ? nameNode.InnerText : "unnamed branch";
+            Branch branch = new Branch { name = branchName };
+            foreach (XmlNode node in xml.ChildNodes)
+            {
+                if (node.Name == "inputs")
+                {
+                    string inputs = node.InnerText;
+                    inputs = StringUtil.removeSandwichingNewlines(inputs);
+                    branch.nodes.Add(new TASEditorSection(inputs, parent));
+                }
+                else if (node.Name == "branch")
+                {
+                    List<Branch> branches = new List<Branch>();
+                    foreach (XmlNode x in node.ChildNodes)
+                    {
+                        if (x.Name != "b")
+                            throw new FormatException();
+                        branches.Add(fromXml(x, parent));
+                    }
+                    if (branches.Count == 0)
+                        throw new FormatException();
+                    branch.nodes.Add(new BranchGroup(branches));
+                }
+                else
+                    throw new FormatException();
+            }
+            return branch;
         }
 
-        public string toFile()
+        public string toInnerXml()
         {
             string contents = "";
             foreach (IEditable node in nodes)
             {
                 if (node is TASEditorSection)
-                    contents += "\n" + ((TASEditorSection)node).getText();
+                    contents += "<inputs>\n" + ((TASEditorSection)node).getText() + "\n</inputs>";
                 else
                 {
-                    List<Branch> branches = ((BranchGroup)node).branches;
-                    for (int i = 0; i < branches.Count; i++)
-                    {
-                        if (i == 0)
-                            contents += "\n>startbranch " + branches[0].name;
-                        else
-                            contents += "\n>branch " + branches[0].name;
-                        contents += "\n" + branches[i].toFile();
-                    }
-                    contents += "\n>endbranch";
+                    contents += "<branch>";
+                    foreach (Branch branch in ((BranchGroup)node).branches)
+                        contents += "<b name=\"" + branch.name + "\">" + branch.toInnerXml() + "</b>";
+                    contents += "</branch>";
                 }
             }
-            return contents.Substring(1);
+            return contents;
         }
 
         public string getName()

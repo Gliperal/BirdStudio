@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
 using System;
+using System.Xml;
 
 namespace BirdStudioRefactor
 {
     class TASEditor : FileManager
     {
-        private const string DEFAULT_FILE_TEXT = ">stage Twin Tree Village\n>rerecords 0\n\n  29";
+        private const string DEFAULT_FILE_TEXT = "<tas stage=\"Twin Tree Village\"><inputs>  29\n</inputs></tas>";
 
+        private TASEditorHeader header;
         private StackPanel panel;
         private Branch masterBranch;
         private List<EditHistoryItem> editHistory = new List<EditHistoryItem>();
@@ -32,6 +34,11 @@ namespace BirdStudioRefactor
             editHistory.Add(edit);
             editHistoryLocation++;
             fileChanged();
+            if (!tasEditedSinceLastWatch)
+            {
+                header.incrementRerecords();
+                tasEditedSinceLastWatch = true;
+            }
             masterBranch.showPlaybackFrame(playbackFrame);
         }
 
@@ -46,6 +53,7 @@ namespace BirdStudioRefactor
         private void reloadComponents()
         {
             panel.Children.Clear();
+            panel.Children.Add(header);
             foreach (UIElement component in masterBranch.getComponents())
                 panel.Children.Add(component);
             // TODO Maintain scroll position
@@ -182,8 +190,15 @@ namespace BirdStudioRefactor
         {
             if (tas == null)
                 tas = DEFAULT_FILE_TEXT;
-            masterBranch = Branch.fromFile(tas, this);
-            // TODO Catch FormatExceptions
+            tas = tas.Replace("\r\n", "\n");
+            XmlDocument xml = new XmlDocument();
+            xml.LoadXml(tas);
+            // TODO Catch System.Xml.XmlException
+            if (xml.DocumentElement.Name != "tas")
+                throw new FormatException();
+            header = new TASEditorHeader(xml.DocumentElement.Attributes);
+            masterBranch = Branch.fromXml(xml.DocumentElement, this);
+            // TODO Catch FormatException
             reloadComponents();
             tasEditedSinceLastWatch = true;
             _clearUndoStack();
@@ -191,15 +206,14 @@ namespace BirdStudioRefactor
 
         protected override string _exportToFile()
         {
-            return masterBranch.toFile();
+            return header.toXml(masterBranch.toInnerXml());
         }
 
         public void onReplaySaved(string levelName, TASInputs newInputs)
         {
             App.Current.Dispatcher.Invoke((Action)delegate // need to update on main thread
             {
-                string stage = _getStage();
-                if (levelName == stage)
+                if (levelName == header.stage())
                     masterBranch.updateInputs(newInputs.getInputLines(), true);
                 else
                 {
@@ -217,16 +231,6 @@ namespace BirdStudioRefactor
                 masterBranch.showPlaybackFrame(frame);
         }
 
-        private string _getStage(string text = null)
-        {
-            if (text == null)
-                text = masterBranch.getText();
-            foreach (string line in text.Split('\n'))
-                if (line.Trim().StartsWith(">stage "))
-                    return line.Trim().Substring(7);
-            return null;
-        }
-
         private void _watch(int breakpoint)
         {
             string text = masterBranch.getText();
@@ -234,7 +238,7 @@ namespace BirdStudioRefactor
             List<Press> presses = tas.toPresses();
             Replay replay = new Replay(presses);
             string replayBuffer = replay.writeString();
-            TcpManager.sendLoadReplayCommand(_getStage(text), replayBuffer, breakpoint);
+            TcpManager.sendLoadReplayCommand(header.stage(), replayBuffer, breakpoint);
             tasEditedSinceLastWatch = false;
         }
 
