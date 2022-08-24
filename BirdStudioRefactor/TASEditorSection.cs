@@ -7,6 +7,36 @@ using ICSharpCode.AvalonEdit;
 
 namespace BirdStudioRefactor
 {
+    class LinesInfo
+    {
+        public int start;
+        public int end;
+        public int length;
+        public int endOfFirstLine;
+        public string lines;
+        public string firstLine;
+        public string preText;
+        public string postText;
+
+        public LinesInfo(string text, int blockStart, int blockLength)
+        {
+            start = 0;
+            if (blockStart > 0)
+                start = text.LastIndexOf('\n', blockStart - 1) + 1;
+            endOfFirstLine = text.IndexOf('\n', blockStart);
+            if (endOfFirstLine == -1)
+                endOfFirstLine = text.Length;
+            end = text.IndexOf('\n', blockStart + blockLength);
+            if (end == -1)
+                end = text.Length;
+            length = end - start;
+            lines = text.Substring(start, length);
+            firstLine = text.Substring(start, endOfFirstLine - start);
+            preText = text.Substring(start, blockStart - start);
+            postText = text.Substring(blockStart + blockLength, end - blockStart - blockLength);
+        }
+    }
+
     // TODO Maybe rename this to something like InputsBlock or InputsSection
     class TASEditorSection : IBranchSection
     {
@@ -98,36 +128,28 @@ namespace BirdStudioRefactor
         // TODO ugly, ugly function >.<
         private void _userEdit(int pos, int deleteLength, string insert)
         {
-            int startOfLine = 0;
-            if (pos > 0)
-                startOfLine = text.LastIndexOf('\n', pos - 1) + 1;
-            int endOfFirstLine = text.IndexOf('\n', pos);
-            if (endOfFirstLine == -1)
-                endOfFirstLine = text.Length;
-            int endOfLastLine = text.IndexOf('\n', pos + deleteLength);
-            if (endOfLastLine == -1)
-                endOfLastLine = text.Length;
-            bool firstLineIsInputLine = TASInputLine.isInputLine(text.Substring(startOfLine, endOfFirstLine - startOfLine));
+            LinesInfo linesInfo = new LinesInfo(text, pos, deleteLength);
+            bool firstLineIsInputLine = TASInputLine.isInputLine(linesInfo.firstLine);
             if (firstLineIsInputLine && deleteLength == 0)
             {
                 if (insert == "#")
-                    pos = startOfLine;
+                    pos = linesInfo.start;
                 else if (insert == "\n")
                 {
-                    if (text.Substring(startOfLine, pos - startOfLine).Trim() == "")
-                        pos = startOfLine;
+                    if (linesInfo.preText.Trim() == "")
+                        pos = linesInfo.start;
                     else
-                        pos = endOfFirstLine;
+                        pos = linesInfo.endOfFirstLine;
                 }
                 else
                 {
                     // Unless we're typing numbers in the middle of the number, default cursor to position 4
-                    int endOfNumbers = StringUtil.firstIndexThatIsNot(text, " \t0123456789", startOfLine);
+                    int endOfNumbers = StringUtil.firstIndexThatIsNot(text, " \t0123456789", linesInfo.start);
                     if (!Char.IsDigit(insert[0]) || pos > endOfNumbers)
                         pos = endOfNumbers;
                 }
             }
-            string line = text.Substring(startOfLine, pos - startOfLine) + insert + text.Substring(pos + deleteLength, endOfLastLine - pos - deleteLength);
+            string line = linesInfo.preText + insert + linesInfo.postText;
             TASInputLine inputLine = TASInputLine.from(line);
             if (inputLine != null && !insert.Contains('\n'))
             {
@@ -142,18 +164,18 @@ namespace BirdStudioRefactor
                 string reformattedLine = new TASInputLine(inputLine.frames, string.Join("", buttons)).toText();
 
                 // Calculate new caret position, based on where caret appeared relative to the frame number
-                int caret = pos + insert.Length - startOfLine;
+                int caret = pos + insert.Length - linesInfo.start;
                 int newCaret = StringUtil.firstIndexThatIsNot(reformattedLine, " 0");
                 int i = StringUtil.firstIndexThatIsNot(line, " 0");
                 for (; i < caret && Char.IsDigit(line[i]); i++)
                     newCaret++;
                 EditHistoryItem edit = new ModifyTextEdit
                 {
-                    pos = startOfLine,
-                    textRemoved = text.Substring(startOfLine, endOfLastLine - startOfLine),
+                    pos = linesInfo.start,
+                    textRemoved = text.Substring(linesInfo.start, linesInfo.length),
                     textInserted = reformattedLine,
                     cursorPosInitial = component.CaretOffset,
-                    cursorPosFinal = startOfLine + newCaret
+                    cursorPosFinal = linesInfo.start + newCaret
                 };
                 parent.requestEdit(this, edit);
             }
@@ -325,6 +347,59 @@ namespace BirdStudioRefactor
                 return true;
             }
             return false;
+        }
+
+        public void comment()
+        {
+            LinesInfo linesInfo = new LinesInfo(text, component.SelectionStart, component.SelectionLength);
+            string[] lines = linesInfo.lines.Split('\n');
+            bool uncomment = true;
+            foreach (string line in lines)
+                if (!line.Trim().StartsWith('#'))
+                    uncomment = false;
+            if (uncomment)
+            {
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    int commentStart = lines[i].IndexOf('#');
+                    lines[i] = lines[i].Substring(commentStart + 1);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < lines.Length; i++)
+                    lines[i] = "#" + lines[i];
+            }
+            ModifyTextEdit edit = new ModifyTextEdit
+            {
+                pos = linesInfo.start,
+                textRemoved = text.Substring(linesInfo.start, linesInfo.end - linesInfo.start),
+                textInserted = string.Join('\n', lines),
+                cursorPosInitial = component.CaretOffset,
+                cursorPosFinal = linesInfo.start
+            };
+            parent.requestEdit(this, edit);
+        }
+
+        public void insertLine(string timestampComment)
+        {
+            LinesInfo info = new LinesInfo(text, component.CaretOffset, 0);
+            ModifyTextEdit edit = new ModifyTextEdit
+            {
+                pos = info.start,
+                textRemoved = info.lines,
+                textInserted = timestampComment,
+                cursorPosInitial = component.CaretOffset,
+                cursorPosFinal = info.start + timestampComment.Length
+            };
+            if (info.lines.Trim() != "")
+            {
+                edit.pos = info.end;
+                edit.textRemoved = "";
+                edit.textInserted = "\n" + timestampComment;
+                edit.cursorPosFinal++;
+            }
+            parent.requestEdit(this, edit);
         }
     }
 }

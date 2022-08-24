@@ -31,6 +31,15 @@
             Executed="RedoCommand_Execute"
             CanExecute="RedoCommand_CanExecute"
         />
+        <CommandBinding
+            Command="commands:CustomCommands.Comment"
+            Executed="CommentCommand_Execute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.AddTimestamp"
+            Executed="TimestampCommand_Execute"
+            CanExecute="TimestampCommand_CanExecute"
+        />
         <CommandBinding Command="commands:CustomCommands.NewBranch" Executed="NewBranch_Execute" />
         <CommandBinding Command="commands:CustomCommands.AddBranch" Executed="AddBranch_Execute" />
         <CommandBinding Command="commands:CustomCommands.RemoveBranch" Executed="RemoveBranch_Execute" />
@@ -75,9 +84,9 @@
             <MenuItem Style="{DynamicResource MenuItemStyle}" Header="_Edit">
                 <MenuItem Header="_Undo" Command="commands:CustomCommands.Undo" />
                 <MenuItem Header="_Redo" Command="commands:CustomCommands.Redo" />
-                <!--Separator/>
+                <Separator/>
                 <MenuItem Header="_Comment Line(s)" Command="commands:CustomCommands.Comment" />
-                <MenuItem Header="Insert _Timestamp" Command="commands:CustomCommands.AddTimestamp" /-->
+                <MenuItem Header="Insert _Timestamp" Command="commands:CustomCommands.AddTimestamp" />
             </MenuItem>
             <MenuItem Style="{DynamicResource MenuItemStyle}" Header="B_ranch">
                 <MenuItem Header="_New Branch at Cursor" Command="commands:CustomCommands.NewBranch" />

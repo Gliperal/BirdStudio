@@ -30,7 +30,6 @@ namespace BirdStudioRefactor.Commands
             new KeyGesture(Key.Y, ModifierKeys.Control)
         );
 
-        /*
         public static RoutedUICommand Comment = makeCommand(
             "Comment/Uncomment Lines",
             "ToggleComment",
@@ -42,7 +41,6 @@ namespace BirdStudioRefactor.Commands
             "Timestamp",
             new KeyGesture(Key.T, ModifierKeys.Control)
         );
-        */
 
         public static RoutedUICommand NewBranch = makeCommand(
             "New Branch",

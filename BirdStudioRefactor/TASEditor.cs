@@ -258,6 +258,36 @@ namespace BirdStudioRefactor
             int frameWithinBlock = block.getInputsData().endingFrameForLine(lineWithinBlock);
             _watch(masterBranch.getStartFrameOfBlock(block) + frameWithinBlock);
         }
+
+        public void comment()
+        {
+            IInputElement focusedElement = FocusManager.GetFocusedElement(panel);
+            List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.InputBlock);
+            if (id == null)
+                return;
+            TASEditorSection block = (TASEditorSection)masterBranch.getEditable(id);
+            block.comment();
+        }
+
+        public bool canTimestampComment()
+        {
+            return playbackFrame != -1;
+        }
+
+        public void timestampComment()
+        {
+            int milliseconds = (int)Math.Round((playbackFrame % 48) * 1000.0 / 48.0);
+            int seconds = (playbackFrame / 48) % 60;
+            int minutes = playbackFrame / (48 * 60);
+            string timestamp = String.Format("# {0} ({1}:{2:D2}.{3:D3})", playbackFrame, minutes, seconds, milliseconds);
+
+            IInputElement focusedElement = FocusManager.GetFocusedElement(panel);
+            List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.InputBlock);
+            if (id == null)
+                return;
+            TASEditorSection block = (TASEditorSection)masterBranch.getEditable(id);
+            block.insertLine(timestamp);
+        }
     }
 }
 

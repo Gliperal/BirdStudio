@@ -124,6 +124,21 @@ namespace BirdStudioRefactor
             e.CanExecute = editor.canRedo();
         }
 
+        private void CommentCommand_Execute(object sender, RoutedEventArgs e)
+        {
+            editor.comment();
+        }
+
+        private void TimestampCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = editor.canTimestampComment();
+        }
+
+        private void TimestampCommand_Execute(object sender, RoutedEventArgs e)
+        {
+            editor.timestampComment();
+        }
+
         private void NewBranch_Execute(object sender, RoutedEventArgs e)
         {
             editor.newBranch();
