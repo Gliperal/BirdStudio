@@ -57,7 +57,7 @@ namespace BirdStudioRefactor
             if (edit is AddBranchEdit)
             {
                 AddBranchEdit addEdit = (AddBranchEdit)edit;
-                branches.Add(addEdit.branchCopy);
+                branches.Add(addEdit.branchCopy.clone());
                 activeBranch = branches.Count - 1;
                 // TODO any time the active branch changes, the focussed element should also change
             }
@@ -389,7 +389,7 @@ namespace BirdStudioRefactor
                 replacementText = "",
                 parent = parent,
             };
-            if (nodes[branchGroupIndex - 1] is TASEditorSection)
+            if (branchGroupIndex > 0 && nodes[branchGroupIndex - 1] is TASEditorSection)
             {
                 edit.nodeIndex = branchGroupIndex - 1;
                 edit.preText = ((TASEditorSection)nodes[branchGroupIndex - 1]).getText();
@@ -415,7 +415,7 @@ namespace BirdStudioRefactor
                 replacementText = nodes[branchGroupIndex].getText(),
                 parent = parent,
             };
-            if (nodes[branchGroupIndex - 1] is TASEditorSection)
+            if (branchGroupIndex > 0 && nodes[branchGroupIndex - 1] is TASEditorSection)
             {
                 edit.nodeIndex = branchGroupIndex - 1;
                 edit.preText = ((TASEditorSection)nodes[branchGroupIndex - 1]).getText();
@@ -467,8 +467,9 @@ namespace BirdStudioRefactor
                 nodes.RemoveAt(newEdit.nodeIndex);
                 if (newEdit.postText != null)
                     nodes.Insert(newEdit.nodeIndex, new TASEditorSection(newEdit.postText, newEdit.parent));
-                nodes.Insert(newEdit.nodeIndex, newEdit.branchGroupCopy);
-                nodes.Insert(newEdit.nodeIndex, new TASEditorSection(newEdit.preText, newEdit.parent));
+                nodes.Insert(newEdit.nodeIndex, newEdit.branchGroupCopy.clone());
+                if (newEdit.preText != null)
+                    nodes.Insert(newEdit.nodeIndex, new TASEditorSection(newEdit.preText, newEdit.parent));
             }
             else if (edit is DeleteBranchGroupEdit)
             {
@@ -491,7 +492,7 @@ namespace BirdStudioRefactor
             else if (edit is NewBranchGroupEdit)
             {
                 NewBranchGroupEdit newEdit = (NewBranchGroupEdit)edit;
-                int deleteCount = newEdit.postText == null ? 2 : 3;
+                int deleteCount = (newEdit.preText != null ? 1 : 0) + 1 + (newEdit.postText != null ? 1 : 0);
                 nodes.RemoveRange(newEdit.nodeIndex, deleteCount);
                 nodes.Insert(newEdit.nodeIndex, new TASEditorSection(newEdit.initialText, newEdit.parent));
             }
@@ -501,7 +502,7 @@ namespace BirdStudioRefactor
                 nodes.RemoveAt(deleteEdit.nodeIndex);
                 if (deleteEdit.postText != null)
                     nodes.Insert(deleteEdit.nodeIndex, new TASEditorSection(deleteEdit.postText, deleteEdit.parent));
-                nodes.Insert(deleteEdit.nodeIndex, deleteEdit.branchGroupCopy);
+                nodes.Insert(deleteEdit.nodeIndex, deleteEdit.branchGroupCopy.clone());
                 if (deleteEdit.preText != null)
                     nodes.Insert(deleteEdit.nodeIndex, new TASEditorSection(deleteEdit.preText, deleteEdit.parent));
             }

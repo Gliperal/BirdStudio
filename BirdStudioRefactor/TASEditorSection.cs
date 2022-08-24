@@ -262,13 +262,11 @@ namespace BirdStudioRefactor
         {
             if (component.SelectionLength == 0)
             {
-                int splitPoint = 0;
-                if (component.CaretOffset != 0)
-                    splitPoint = text.LastIndexOf('\n', component.CaretOffset - 1) + 1;
+                LinesInfo info = new LinesInfo(text, component.SelectionStart, component.SelectionLength);
                 return new string[]
                 {
-                    text.Substring(0, splitPoint),
-                    text.Substring(splitPoint),
+                    (info.start > 0) ? text.Substring(0, info.start - 1) : null,
+                    text.Substring(info.start),
                     null
                 };
             }

@@ -238,9 +238,15 @@ namespace BirdStudioRefactor
                 rCtrlDown = true;
             bool ctrlDown = lCtrlDown || rCtrlDown;
             if (ctrlDown && e.Key == Key.Z)
+            {
                 editor.undo();
+                e.Handled = true;
+            }
             if (ctrlDown && e.Key == Key.Y)
+            {
                 editor.redo();
+                e.Handled = true;
+            }
         }
 
         private void Window_PreviewKeyUp(object sender, KeyEventArgs e)
