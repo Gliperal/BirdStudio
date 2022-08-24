@@ -60,6 +60,12 @@ namespace BirdStudioRefactor.Commands
             null
         );
 
+        public static RoutedUICommand AcceptBranch = makeCommand(
+            "Accept Branch",
+            "AcceptBranch",
+            null
+        );
+
         public static RoutedUICommand CycleBranch = makeCommand(
             "Cycle Branch",
             "CycleBranch",

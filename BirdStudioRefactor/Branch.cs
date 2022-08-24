@@ -395,13 +395,36 @@ namespace BirdStudioRefactor
                 edit.preText = ((TASEditorSection)nodes[branchGroupIndex - 1]).getText();
                 edit.replacementText = edit.preText;
             }
-            if (nodes[branchGroupIndex + 1] is TASEditorSection)
+            if (branchGroupIndex < nodes.Count - 1 && nodes[branchGroupIndex + 1] is TASEditorSection)
             {
                 edit.postText = ((TASEditorSection)nodes[branchGroupIndex + 1]).getText();
                 if (edit.preText == null)
                     edit.replacementText = edit.postText;
                 else
                     edit.replacementText += "\n" + edit.postText;
+            }
+            return edit;
+        }
+
+        internal EditHistoryItem acceptBranchGroupEdit(int branchGroupIndex, TASEditor parent)
+        {
+            DeleteBranchGroupEdit edit = new DeleteBranchGroupEdit
+            {
+                nodeIndex = branchGroupIndex,
+                branchGroupCopy = (BranchGroup)nodes[branchGroupIndex].clone(),
+                replacementText = nodes[branchGroupIndex].getText(),
+                parent = parent,
+            };
+            if (nodes[branchGroupIndex - 1] is TASEditorSection)
+            {
+                edit.nodeIndex = branchGroupIndex - 1;
+                edit.preText = ((TASEditorSection)nodes[branchGroupIndex - 1]).getText();
+                edit.replacementText = edit.preText + "\n" + edit.replacementText;
+            }
+            if (branchGroupIndex < nodes.Count - 1 && nodes[branchGroupIndex + 1] is TASEditorSection)
+            {
+                edit.postText = ((TASEditorSection)nodes[branchGroupIndex + 1]).getText();
+                edit.replacementText += "\n" + edit.postText;
             }
             return edit;
         }

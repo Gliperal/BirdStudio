@@ -170,6 +170,20 @@ namespace BirdStudioRefactor
             requestEdit(target, edit);
         }
 
+        public void acceptBranch()
+        {
+            IInputElement focusedElement = FocusManager.GetFocusedElement(panel);
+            List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.BranchGroup);
+            if (id == null)
+                return;
+            int branchGroupIndex = id[id.Count - 1];
+            id.RemoveAt(id.Count - 1);
+            Branch target = (Branch)masterBranch.getEditable(id);
+            // TODO Confirmation dialogue ("Are you sure you want to delete _ branches (_ subbranches) (_ lines)?")
+            EditHistoryItem edit = target.acceptBranchGroupEdit(branchGroupIndex, this);
+            requestEdit(target, edit);
+        }
+
         public void renameBranch()
         {
             IInputElement focusedElement = FocusManager.GetFocusedElement(panel);
