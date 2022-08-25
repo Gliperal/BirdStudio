@@ -8,16 +8,16 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <StackPanel>
         <DockPanel>
-            <Label>Stage:</Label>
-            <TextBox Name="stageInput" HorizontalAlignment="Stretch" />
+            <Label Foreground="{DynamicResource TextBlock.Foreground}">Stage:</Label>
+            <TextBox Name="stageInput" Margin="0 4 4 4" Foreground="{DynamicResource TextBox.Foreground}" Background="{DynamicResource TextBox.Background}" BorderBrush="{DynamicResource TextBox.Background}" />
         </DockPanel>
         <DockPanel>
-            <Label>Spawn:</Label>
-            <TextBox Name="spawnInput" />
+            <Label Foreground="{DynamicResource TextBlock.Foreground}">Spawn:</Label>
+            <TextBox Name="spawnInput" Margin="0 4 4 4" Foreground="{DynamicResource TextBox.Foreground}" Background="{DynamicResource TextBox.Background}" BorderBrush="{DynamicResource TextBox.Background}" />
         </DockPanel>
         <DockPanel>
-            <Label>Rerecords:</Label>
-            <TextBox Name="rerecordsInput" />
+            <Label Foreground="{DynamicResource TextBlock.Foreground}">Rerecords:</Label>
+            <TextBox Name="rerecordsInput" Margin="0 4 4 4" Foreground="{DynamicResource TextBox.Foreground}" Background="{DynamicResource TextBox.Background}" BorderBrush="{DynamicResource TextBox.Background}" />
         </DockPanel>
     </StackPanel>
 </UserControl>
