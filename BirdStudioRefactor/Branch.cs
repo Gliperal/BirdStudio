@@ -510,18 +510,19 @@ namespace BirdStudioRefactor
                 throw new EditTypeNotSupportedException();
         }
 
-        public int showPlaybackFrame(int frame)
+        public int showPlaybackFrame(int frame, bool force=true)
         {
             // TODO This could be cached so as to not iterate through the branches every time
             if (highlightedSection != null)
                 highlightedSection.showPlaybackFrame(-1);
             foreach (IBranchSection node in nodes)
             {
+                bool lastChance = force && node == nodes[nodes.Count - 1];
                 if (node is TASEditorSection)
                 {
                     TASEditorSection inputNode = (TASEditorSection)node;
                     int frameCount = inputNode.getInputsData().totalFrames();
-                    if (frame <= frameCount)
+                    if (frame <= frameCount || lastChance)
                     {
                         inputNode.showPlaybackFrame(frame);
                         highlightedSection = inputNode;
@@ -533,7 +534,7 @@ namespace BirdStudioRefactor
                 {
                     BranchGroup branchNode = (BranchGroup)node;
                     Branch activeBranch = branchNode.branches[branchNode.activeBranch];
-                    frame = activeBranch.showPlaybackFrame(frame);
+                    frame = activeBranch.showPlaybackFrame(frame, lastChance);
                     if (frame == 0)
                         return 0;
                 }

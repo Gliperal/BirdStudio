@@ -124,7 +124,7 @@ namespace BirdStudioRefactor
                 if (frame <= lineEndFrame)
                     return new int[] { i, frame - lineStartFrame };
             }
-            return new int[] { inputLines.Count - 1, frame - startingFrames[inputLines.Count] };
+            return new int[] { inputLines.Count - 1, frame - startingFrames[inputLines.Count - 1] };
         }
 
         public int totalFrames()
