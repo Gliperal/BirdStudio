@@ -134,7 +134,6 @@ namespace BirdStudioRefactor
     {
         private string name;
         List<IBranchSection> nodes = new List<IBranchSection>();
-        private TASEditorSection highlightedSection;
 
         private Branch() {}
 
@@ -510,11 +509,9 @@ namespace BirdStudioRefactor
                 throw new EditTypeNotSupportedException();
         }
 
-        public int showPlaybackFrame(int frame, bool force=true)
+        public int showPlaybackFrame(int frame, ref TASEditorSection highlightedSection, bool force=true)
         {
             // TODO This could be cached so as to not iterate through the branches every time
-            if (highlightedSection != null)
-                highlightedSection.showPlaybackFrame(-1);
             foreach (IBranchSection node in nodes)
             {
                 bool lastChance = force && node == nodes[nodes.Count - 1];
@@ -534,7 +531,7 @@ namespace BirdStudioRefactor
                 {
                     BranchGroup branchNode = (BranchGroup)node;
                     Branch activeBranch = branchNode.branches[branchNode.activeBranch];
-                    frame = activeBranch.showPlaybackFrame(frame, lastChance);
+                    frame = activeBranch.showPlaybackFrame(frame, ref highlightedSection, lastChance);
                     if (frame == 0)
                         return 0;
                 }

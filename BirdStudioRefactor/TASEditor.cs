@@ -17,6 +17,7 @@ namespace BirdStudioRefactor
         private List<EditHistoryItem> editHistory = new List<EditHistoryItem>();
         private int editHistoryLocation = 0;
         private bool tasEditedSinceLastWatch = true;
+        private TASEditorSection highlightedSection;
         private int playbackFrame = -1;
 
         public TASEditor(MainWindow window, StackPanel panel) : base(window)
@@ -39,7 +40,7 @@ namespace BirdStudioRefactor
                 header.incrementRerecords();
                 tasEditedSinceLastWatch = true;
             }
-            masterBranch.showPlaybackFrame(playbackFrame);
+            showPlaybackFrame(playbackFrame);
         }
 
         public void requestEdit(IEditable target, EditHistoryItem edit)
@@ -240,9 +241,13 @@ namespace BirdStudioRefactor
 
         public void showPlaybackFrame(int frame)
         {
+            if (highlightedSection != null)
+                highlightedSection.showPlaybackFrame(-1);
             playbackFrame = frame;
-            if (frame != -1)
-                masterBranch.showPlaybackFrame(frame);
+            if (frame == -1)
+                highlightedSection = null;
+            else
+                masterBranch.showPlaybackFrame(frame, ref highlightedSection);
         }
 
         private void _watch(int breakpoint)
