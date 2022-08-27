@@ -233,6 +233,8 @@ namespace BirdStudioRefactor
             // Catch copy/paste and drag&drop changes and include them in the edit history
             if (component.Text != text)
             {
+                inputsData = null;
+                text = component.Text;
                 parent.editPerformed(this, new ModifyTextEdit
                 {
                     pos = 0,
@@ -241,7 +243,6 @@ namespace BirdStudioRefactor
                     cursorPosInitial = 0, // TODO
                     cursorPosFinal = component.CaretOffset
                 });
-                text = component.Text;
             }
         }
 
