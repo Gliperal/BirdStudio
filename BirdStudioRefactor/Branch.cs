@@ -222,7 +222,7 @@ namespace BirdStudioRefactor
             foreach (IEditable node in nodes)
             {
                 if (node is TASEditorSection)
-                    components.Add(((TASEditorSection)node).getComponent());
+                    components.Add((TASEditorSection)node);
                 else
                 {
                     BranchGroup branchGroup = (BranchGroup)node;
@@ -256,7 +256,7 @@ namespace BirdStudioRefactor
             {
                 if (nodes[i] is TASEditorSection)
                 {
-                    if (((TASEditorSection)nodes[i]).getComponent().TextArea == element)
+                    if (((TASEditorSection)nodes[i]).TextArea == element)
                     {
                         target = nodes[i];
                         return new List<int> { i };
@@ -559,6 +559,28 @@ namespace BirdStudioRefactor
                 }
             }
             return -1;
+        }
+
+        public TopBottom activeLineYPos(TASEditorSection activeBlock)
+        {
+            double y = 0;
+            foreach (UIElement component in getComponents())
+            {
+                if (component == activeBlock)
+                {
+                    // TODO Bad hacky way to do this (won't even work with text wrap)
+                    int caretOffset = activeBlock.CaretOffset;
+                    var caretLine = activeBlock.Document.GetLineByOffset(caretOffset);
+                    double lineHeight = activeBlock.ActualHeight / activeBlock.Text.Split('\n').Length;
+                    double top = y + (caretLine.LineNumber - 1) * lineHeight;
+                    return new TopBottom {
+                        top = top,
+                        bottom = top + lineHeight
+                    };
+                }
+                y += component.RenderSize.Height;
+            }
+            return null;
         }
     }
 }

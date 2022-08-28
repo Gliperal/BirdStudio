@@ -108,7 +108,7 @@
                 <MenuItem Header="_Show/Hide Help" Click="Menu_ToggleHelp" />
             </MenuItem>
         </Menu>
-        <ScrollViewer Grid.Row="1">
+        <ScrollViewer x:Name="editorScrollViewer" Grid.Row="1">
             <StackPanel x:Name="editorBase" FocusManager.IsFocusScope="True" />
         </ScrollViewer>
         <TextBlock Style="{DynamicResource TextBlockStyle}"

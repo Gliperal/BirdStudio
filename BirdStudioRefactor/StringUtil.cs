@@ -1,5 +1,11 @@
 ﻿namespace BirdStudioRefactor
 {
+    class TopBottom
+    {
+        public double top;
+        public double bottom;
+    }
+
     class StringUtil
     {
         public static string removeSingleNewline(string text)

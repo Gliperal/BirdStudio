@@ -19,7 +19,7 @@ namespace BirdStudioRefactor
         public MainWindow()
         {
             InitializeComponent();
-            editor = new TASEditor(this, editorBase);
+            editor = new TASEditor(this, editorBase, editorScrollViewer);
             if (UserPreferences.get("dark mode", "false") == "true")
             {
                 ColorScheme.instance().DarkMode();

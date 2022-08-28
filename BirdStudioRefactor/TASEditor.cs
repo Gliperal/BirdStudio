@@ -13,6 +13,7 @@ namespace BirdStudioRefactor
 
         private TASEditorHeader header;
         private StackPanel panel;
+        private ScrollViewer scrollViewer;
         private Branch masterBranch;
         private List<EditHistoryItem> editHistory = new List<EditHistoryItem>();
         private int editHistoryLocation = 0;
@@ -20,9 +21,10 @@ namespace BirdStudioRefactor
         private TASEditorSection highlightedSection;
         private int playbackFrame = -1;
 
-        public TASEditor(MainWindow window, StackPanel panel) : base(window)
+        public TASEditor(MainWindow window, StackPanel panel, ScrollViewer scrollViewer) : base(window)
         {
             this.panel = panel;
+            this.scrollViewer = scrollViewer;
             neww();
         }
 
@@ -40,6 +42,7 @@ namespace BirdStudioRefactor
                 header.incrementRerecords();
                 tasEditedSinceLastWatch = true;
             }
+            bringActiveLineToFocus();
             showPlaybackFrame(playbackFrame);
         }
 
@@ -57,7 +60,7 @@ namespace BirdStudioRefactor
             panel.Children.Add(header);
             foreach (UIElement component in masterBranch.getComponents())
                 panel.Children.Add(component);
-            // TODO Maintain scroll position
+            bringActiveLineToFocus();
         }
 
         public bool canUndo()
@@ -273,9 +276,30 @@ namespace BirdStudioRefactor
             if (id == null)
                 return;
             TASEditorSection block = (TASEditorSection)masterBranch.getEditable(id);
-            int lineWithinBlock = block.getComponent().TextArea.Caret.Line - 1;
+            int lineWithinBlock = block.TextArea.Caret.Line - 1;
             int frameWithinBlock = block.getInputsData().endingFrameForLine(lineWithinBlock);
             _watch(masterBranch.getStartFrameOfBlock(block) + frameWithinBlock);
+        }
+
+        public void bringActiveLineToFocus()
+        {
+            if (masterBranch == null)
+                return;
+            IInputElement focusedElement = FocusManager.GetFocusedElement(panel);
+            List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.InputBlock);
+            if (id == null)
+                return;
+            TASEditorSection block = (TASEditorSection)masterBranch.getEditable(id);
+            TopBottom activeLine = masterBranch.activeLineYPos(block);
+            if (activeLine == null)
+                return;
+            activeLine.top += header.RenderSize.Height;
+            activeLine.bottom += header.RenderSize.Height;
+            double scroll = scrollViewer.VerticalOffset;
+            if (scroll > activeLine.top)
+                scrollViewer.ScrollToVerticalOffset(activeLine.top);
+            if (scroll < activeLine.bottom - scrollViewer.ActualHeight)
+                scrollViewer.ScrollToVerticalOffset(activeLine.bottom - scrollViewer.ActualHeight);
         }
 
         public void comment()

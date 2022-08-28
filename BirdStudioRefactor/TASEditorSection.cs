@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -7,72 +8,41 @@ using ICSharpCode.AvalonEdit;
 
 namespace BirdStudioRefactor
 {
-    class LinesInfo
-    {
-        public int start;
-        public int end;
-        public int length;
-        public int endOfFirstLine;
-        public string lines;
-        public string firstLine;
-        public string preText;
-        public string postText;
-
-        public LinesInfo(string text, int blockStart, int blockLength)
-        {
-            start = 0;
-            if (blockStart > 0)
-                start = text.LastIndexOf('\n', blockStart - 1) + 1;
-            endOfFirstLine = text.IndexOf('\n', blockStart);
-            if (endOfFirstLine == -1)
-                endOfFirstLine = text.Length;
-            end = text.IndexOf('\n', blockStart + blockLength);
-            if (end == -1)
-                end = text.Length;
-            length = end - start;
-            lines = text.Substring(start, length);
-            firstLine = text.Substring(start, endOfFirstLine - start);
-            preText = text.Substring(start, blockStart - start);
-            postText = text.Substring(blockStart + blockLength, end - blockStart - blockLength);
-        }
-    }
-
     // TODO Maybe rename this to something like InputsBlock or InputsSection
-    class TASEditorSection : IBranchSection
+    class TASEditorSection : TextEditor, IBranchSection
     {
         private TASEditor parent;
-        private TextEditor component;
         private LineHighlighter bgRenderer;
 
         private string text;
+        bool ignoreCaretChanges;
         private TASInputs inputsData;
 
         public TASEditorSection(string initialText, TASEditor parent)
         {
             this.parent = parent;
-            component = new TextEditor
-            {
-                //Padding = "10,0,0,0",
-                FontFamily = new FontFamily("Consolas"),
-                FontSize = 19,
-                ShowLineNumbers = true,
-                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-                VerticalScrollBarVisibility = ScrollBarVisibility.Disabled
-            };
-            component.SyntaxHighlighting = ColorScheme.instance().syntaxHighlighting;
-            bgRenderer = new LineHighlighter(component);
-            component.SetResourceReference(Control.ForegroundProperty, "Editor.Foreground");
-            component.SetResourceReference(Control.BackgroundProperty, "Editor.Background");
-            component.TextArea.TextView.BackgroundRenderers.Add(bgRenderer);
-            component.TextArea.PreviewKeyDown += Editor_KeyDown;
-            component.TextArea.TextEntering += Editor_TextEntering;
-            component.TextChanged += Editor_TextChanged;
-            component.GotKeyboardFocus += Editor_GainedFocus;
-            component.LostKeyboardFocus += Editor_LostFocus;
+            Padding = new Thickness(10, 0, 0, 0);
+            FontFamily = new FontFamily("Consolas");
+            FontSize = 19;
+            ShowLineNumbers = true;
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
+            VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
+            SyntaxHighlighting = ColorScheme.instance().syntaxHighlighting;
+            bgRenderer = new LineHighlighter(this);
+            SetResourceReference(Control.ForegroundProperty, "Editor.Foreground");
+            SetResourceReference(Control.BackgroundProperty, "Editor.Background");
+            TextArea.TextView.BackgroundRenderers.Add(bgRenderer);
+            TextArea.PreviewKeyDown += Editor_KeyDown;
+            TextArea.TextEntering += Editor_TextEntering;
+            TextChanged += Editor_TextChanged;
+            GotKeyboardFocus += Editor_GainedFocus;
+            LostKeyboardFocus += Editor_LostFocus;
+            RequestBringIntoView += Editor_RequestBringIntoView;
+            TextArea.Caret.PositionChanged += Editor_CaretPositionChanged;
             text = initialText;
-            component.Text = initialText;
+            Text = initialText;
             // Disable native undo/redo
-            component.Document.UndoStack.SizeLimit = 0;
+            Document.UndoStack.SizeLimit = 0;
         }
 
         public IBranchSection clone()
@@ -85,11 +55,6 @@ namespace BirdStudioRefactor
             return text;
         }
 
-        public TextEditor getComponent()
-        {
-            return component;
-        }
-
         public TASInputs getInputsData()
         {
             if (inputsData != null)
@@ -100,29 +65,33 @@ namespace BirdStudioRefactor
 
         public void performEdit(EditHistoryItem e)
         {
+            ignoreCaretChanges = true;
             if (!(e is ModifyTextEdit))
                 throw new EditTypeNotSupportedException();
             ModifyTextEdit edit = (ModifyTextEdit)e;
-            text = component.Text;
+            // text = component.Text;
             // TODO Better way to perform insertions/deletions on the avalon editor?
             // TextLocation deleteStart = component.Document.GetLocation(pos);
             // TextLocation deleteEnd = component.Document.GetLocation(pos + deleteLength);
             text = text.Substring(0, edit.pos) + edit.textInserted + text.Substring(edit.pos + edit.textRemoved.Length);
-            component.Text = text;
-            component.CaretOffset = edit.cursorPosFinal;
+            Text = text;
+            CaretOffset = edit.cursorPosFinal;
             inputsData = null;
+            ignoreCaretChanges = false;
         }
 
         public void revertEdit(EditHistoryItem e)
         {
+            ignoreCaretChanges = true;
             if (!(e is ModifyTextEdit))
                 throw new EditTypeNotSupportedException();
             ModifyTextEdit edit = (ModifyTextEdit)e;
-            text = component.Text;
+            // text = component.Text;
             text = text.Substring(0, edit.pos) + edit.textRemoved + text.Substring(edit.pos + edit.textInserted.Length);
-            component.Text = text;
-            component.CaretOffset = edit.cursorPosInitial;
+            Text = text;
+            CaretOffset = edit.cursorPosInitial;
             inputsData = null;
+            ignoreCaretChanges = false;
         }
 
         // TODO ugly, ugly function >.<
@@ -174,7 +143,7 @@ namespace BirdStudioRefactor
                     pos = linesInfo.start,
                     textRemoved = text.Substring(linesInfo.start, linesInfo.length),
                     textInserted = reformattedLine,
-                    cursorPosInitial = component.CaretOffset,
+                    cursorPosInitial = CaretOffset,
                     cursorPosFinal = linesInfo.start + newCaret
                 };
                 parent.requestEdit(this, edit);
@@ -186,7 +155,7 @@ namespace BirdStudioRefactor
                     pos = pos,
                     textRemoved = text.Substring(pos, deleteLength),
                     textInserted = insert,
-                    cursorPosInitial = component.CaretOffset,
+                    cursorPosInitial = CaretOffset,
                     cursorPosFinal = pos + insert.Length
                 };
                 parent.requestEdit(this, edit);
@@ -197,8 +166,8 @@ namespace BirdStudioRefactor
         {
             if (e.Key == Key.Back || e.Key == Key.Delete)
             {
-                int deletePos = component.SelectionStart;
-                int deleteLength = component.SelectionLength;
+                int deletePos = SelectionStart;
+                int deleteLength = SelectionLength;
                 if (deleteLength == 0)
                 {
                     deleteLength = 1;
@@ -208,7 +177,7 @@ namespace BirdStudioRefactor
                 // Ingore backspace at beginning of text or delete at end of text
                 if (
                     deletePos >= 0 &&
-                    deletePos + deleteLength <= component.Document.TextLength
+                    deletePos + deleteLength <= Document.TextLength
                 )
                     _userEdit(deletePos, deleteLength, "");
                 e.Handled = true;
@@ -217,12 +186,12 @@ namespace BirdStudioRefactor
 
         private void Editor_TextEntering(object sender, TextCompositionEventArgs e)
         {
-            int pos = component.CaretOffset;
+            int pos = CaretOffset;
             int deleteLength = 0;
-            if (component.SelectionLength > 0)
+            if (SelectionLength > 0)
             {
-                pos = component.SelectionStart;
-                deleteLength = component.SelectionLength;
+                pos = SelectionStart;
+                deleteLength = SelectionLength;
             }
             _userEdit(pos, deleteLength, e.Text);
             e.Handled = true;
@@ -231,17 +200,18 @@ namespace BirdStudioRefactor
         private void Editor_TextChanged(object sender, System.EventArgs e)
         {
             // Catch copy/paste and drag&drop changes and include them in the edit history
-            if (component.Text != text)
+            if (Text != text)
             {
                 inputsData = null;
-                text = component.Text;
+                string oldText = text;
+                text = Text;
                 parent.editPerformed(this, new ModifyTextEdit
                 {
                     pos = 0,
-                    textRemoved = text,
-                    textInserted = component.Text,
+                    textRemoved = oldText,
+                    textInserted = Text,
                     cursorPosInitial = 0, // TODO
-                    cursorPosFinal = component.CaretOffset
+                    cursorPosFinal = CaretOffset
                 });
             }
         }
@@ -249,21 +219,34 @@ namespace BirdStudioRefactor
         private void Editor_GainedFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
             bgRenderer.changeFocus(true);
-            component.TextArea.TextView.Redraw();
+            TextArea.TextView.Redraw();
         }
 
         private void Editor_LostFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
             bgRenderer.changeFocus(false);
-            component.TextArea.TextView.Redraw();
-            component.SelectionLength = 0;
+            TextArea.TextView.Redraw();
+            SelectionLength = 0;
+        }
+
+        public void Editor_RequestBringIntoView(object sender, RequestBringIntoViewEventArgs e)
+        {
+            // Stop WPF from snapping to a new section when it gains focus
+            e.Handled = true;
+        }
+
+        public void Editor_CaretPositionChanged(object sender, EventArgs e)
+        {
+            if (ignoreCaretChanges)
+                return;
+            parent.bringActiveLineToFocus();
         }
 
         public string[] splitOutBranch()
         {
-            if (component.SelectionLength == 0)
+            if (SelectionLength == 0)
             {
-                LinesInfo info = new LinesInfo(text, component.SelectionStart, component.SelectionLength);
+                LinesInfo info = new LinesInfo(text, SelectionStart, SelectionLength);
                 return new string[]
                 {
                     (info.start > 0) ? text.Substring(0, info.start - 1) : null,
@@ -274,9 +257,9 @@ namespace BirdStudioRefactor
             else
                 return new string[]
                 {
-                    text.Substring(0, component.SelectionStart),
-                    text.Substring(component.SelectionStart, component.SelectionLength),
-                    text.Substring(component.SelectionStart + component.SelectionLength),
+                    text.Substring(0, SelectionStart),
+                    text.Substring(SelectionStart, SelectionLength),
+                    text.Substring(SelectionStart + SelectionLength),
                 };
         }
 
@@ -292,7 +275,7 @@ namespace BirdStudioRefactor
             }
             App.Current.Dispatcher.Invoke((Action)delegate // need to update on main thread
             {
-                component.TextArea.TextView.Redraw();
+                TextArea.TextView.Redraw();
             });
         }
 
@@ -350,7 +333,7 @@ namespace BirdStudioRefactor
 
         public void comment()
         {
-            LinesInfo linesInfo = new LinesInfo(text, component.SelectionStart, component.SelectionLength);
+            LinesInfo linesInfo = new LinesInfo(text, SelectionStart, SelectionLength);
             string[] lines = linesInfo.lines.Split('\n');
             bool uncomment = true;
             foreach (string line in lines)
@@ -374,7 +357,7 @@ namespace BirdStudioRefactor
                 pos = linesInfo.start,
                 textRemoved = text.Substring(linesInfo.start, linesInfo.end - linesInfo.start),
                 textInserted = string.Join('\n', lines),
-                cursorPosInitial = component.CaretOffset,
+                cursorPosInitial = CaretOffset,
                 cursorPosFinal = linesInfo.start
             };
             parent.requestEdit(this, edit);
@@ -382,13 +365,13 @@ namespace BirdStudioRefactor
 
         public void insertLine(string timestampComment)
         {
-            LinesInfo info = new LinesInfo(text, component.CaretOffset, 0);
+            LinesInfo info = new LinesInfo(text, CaretOffset, 0);
             ModifyTextEdit edit = new ModifyTextEdit
             {
                 pos = info.start,
                 textRemoved = info.lines,
                 textInserted = timestampComment,
-                cursorPosInitial = component.CaretOffset,
+                cursorPosInitial = CaretOffset,
                 cursorPosFinal = info.start + timestampComment.Length
             };
             if (info.lines.Trim() != "")
