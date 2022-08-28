@@ -35,6 +35,7 @@ namespace BirdStudioRefactor
             new Thread(new ThreadStart(TalkWithGame)).Start();
             this.PreviewKeyDown += Window_PreviewKeyDown;
             this.PreviewKeyUp += Window_PreviewKeyUp;
+            this.PreviewMouseWheel += Window_PreviewMouseWheel;
         }
 
         private void TalkWithGame()
@@ -255,6 +256,16 @@ namespace BirdStudioRefactor
                 lCtrlDown = false;
             if (e.Key == Key.RightCtrl)
                 rCtrlDown = false;
+        }
+
+        private void Window_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            // Workaround for avalonEdit stealing my scroll inputs
+            if (e.Delta > 0)
+                editorScrollViewer.LineUp();
+            else
+                editorScrollViewer.LineDown();
+            e.Handled = true;
         }
     }
 }
