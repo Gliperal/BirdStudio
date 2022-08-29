@@ -32,6 +32,8 @@ namespace BirdStudioRefactor
             updateColorScheme();
             if (UserPreferences.get("show help", "false") == "true")
                 helpBlock.Visibility = Visibility.Visible;
+            if (UserPreferences.get("autosave", "false") == "true")
+                autosaveMenuItem.IsChecked = true;
             new Thread(new ThreadStart(TalkWithGame)).Start();
             this.PreviewKeyDown += Window_PreviewKeyDown;
             this.PreviewKeyUp += Window_PreviewKeyUp;
@@ -243,6 +245,16 @@ namespace BirdStudioRefactor
                 helpBlock.Visibility = Visibility.Visible;
                 UserPreferences.set("show help", "true");
             }
+        }
+
+        private void Menu_AutosaveOn(object sender, RoutedEventArgs e)
+        {
+            UserPreferences.set("autosave", "true");
+        }
+
+        private void Menu_AutosaveOff(object sender, RoutedEventArgs e)
+        {
+            UserPreferences.set("autosave", "false");
         }
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)

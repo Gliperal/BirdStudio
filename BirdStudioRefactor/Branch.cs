@@ -31,6 +31,8 @@ namespace BirdStudioRefactor
             this.branches = branches;
             this.activeBranch = activeBranch;
             headerComponent = new TextBlock();
+            headerComponent.SetResourceReference(Control.BackgroundProperty, "TextBlock.Background");
+            headerComponent.SetResourceReference(Control.ForegroundProperty, "TextBlock.Foreground");
             updateHeader();
         }
 

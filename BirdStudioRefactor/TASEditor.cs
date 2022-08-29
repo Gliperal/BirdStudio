@@ -268,6 +268,8 @@ namespace BirdStudioRefactor
 
         private void _watch(int breakpoint)
         {
+            if (UserPreferences.get("autosave", "false") == "true")
+                save();
             string text = masterBranch.getText();
             TASInputs tas = new TASInputs(text);
             List<Press> presses = tas.toPresses();

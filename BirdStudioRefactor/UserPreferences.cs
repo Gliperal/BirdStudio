@@ -16,6 +16,7 @@ namespace BirdStudioRefactor
     {
         public string DarkMode { get; set; }
         public string ShowHelp { get; set; }
+        public string AutosaveEnabled { get; set; }
         public IDictionary<string, Keybind> KeyBindings { get; set; }
     }
 
@@ -39,6 +40,7 @@ namespace BirdStudioRefactor
                 PreferencesData data = JsonConvert.DeserializeObject<PreferencesData>(json);
                 settings["dark mode"] = data.DarkMode;
                 settings["show help"] = data.ShowHelp;
+                settings["autosave"] = data.AutosaveEnabled;
                 keyBindings = data.KeyBindings;
             }
             catch (Exception e)
@@ -56,6 +58,7 @@ namespace BirdStudioRefactor
                 {
                     DarkMode = settings.ContainsKey("dark mode") ? settings["dark mode"] : "false",
                     ShowHelp = settings.ContainsKey("show help") ? settings["show help"] : "false",
+                    AutosaveEnabled = settings.ContainsKey("autosave") ? settings["autosave"] : "false",
                     KeyBindings = keyBindings
                 };
                 string json = JsonConvert.SerializeObject(data);

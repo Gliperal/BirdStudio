@@ -131,6 +131,7 @@
             <MenuItem Style="{DynamicResource MenuItemStyle}" Header="_Preferences">
                 <MenuItem Name="darkModeMenuItem" Header="_Dark Mode" IsCheckable="True" Checked="Menu_DarkMode" Unchecked="Menu_LightMode" />
                 <MenuItem Header="_Show/Hide Help" Click="Menu_ToggleHelp" />
+                <MenuItem Name="autosaveMenuItem" Header="_Autosave on Watch" IsCheckable="True" Checked="Menu_AutosaveOn" Unchecked="Menu_AutosaveOff" />
             </MenuItem>
         </Menu>
         <ScrollViewer x:Name="editorScrollViewer" Grid.Row="1">
