@@ -45,7 +45,7 @@ namespace BirdStudioRefactor.Commands
         public static RoutedUICommand NewBranch = makeCommand(
             "New Branch",
             "NewBranch",
-            null
+            new KeyGesture(Key.B, ModifierKeys.Control)
         );
 
         public static RoutedUICommand AddBranch = makeCommand(
@@ -63,19 +63,25 @@ namespace BirdStudioRefactor.Commands
         public static RoutedUICommand AcceptBranch = makeCommand(
             "Accept Branch",
             "AcceptBranch",
-            null
+            new KeyGesture(Key.Enter, ModifierKeys.Control)
         );
 
-        public static RoutedUICommand CycleBranch = makeCommand(
-            "Cycle Branch",
-            "CycleBranch",
-            null
+        public static RoutedUICommand PrevBranch = makeCommand(
+            "Previous Branch",
+            "PrevBranch",
+            new KeyGesture(Key.OemComma, ModifierKeys.Control)
+        );
+
+        public static RoutedUICommand NextBranch = makeCommand(
+            "Next Branch",
+            "NextBranch",
+            new KeyGesture(Key.OemPeriod, ModifierKeys.Control)
         );
 
         public static RoutedUICommand RenameBranch = makeCommand(
             "Rename Branch",
             "RenameBranch",
-            null
+            new KeyGesture(Key.R, ModifierKeys.Control)
         );
 
         public static RoutedUICommand WatchFromStart = makeCommand(

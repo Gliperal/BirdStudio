@@ -131,7 +131,18 @@ namespace BirdStudioRefactor
             requestEdit(target, edit);
         }
 
-        public void cycleBranch()
+        public bool canChangeBranch(int offset)
+        {
+            IInputElement focusedElement = FocusManager.GetFocusedElement(panel);
+            // This approach kinda sucks since we have to search for the target id twice, but w/e
+            List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.BranchGroup);
+            if (id == null)
+                return false;
+            BranchGroup target = (BranchGroup)masterBranch.getEditable(id);
+            return target.canChangeBranch(offset);
+        }
+
+        public void changeBranch(int offset)
         {
             IInputElement focusedElement = FocusManager.GetFocusedElement(panel);
             // This approach kinda sucks since we have to search for the target id twice, but w/e
@@ -139,7 +150,9 @@ namespace BirdStudioRefactor
             if (id == null)
                 return;
             BranchGroup target = (BranchGroup) masterBranch.getEditable(id);
-            EditHistoryItem edit = target.cycleBranchEdit();
+            EditHistoryItem edit = target.changeBranchEdit(offset);
+            if (edit == null)
+                return;
             requestEdit(target, edit);
         }
 

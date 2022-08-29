@@ -40,12 +40,36 @@
             Executed="TimestampCommand_Execute"
             CanExecute="TimestampCommand_CanExecute"
         />
-        <CommandBinding Command="commands:CustomCommands.NewBranch" Executed="NewBranch_Execute" />
-        <CommandBinding Command="commands:CustomCommands.AddBranch" Executed="AddBranch_Execute" />
-        <CommandBinding Command="commands:CustomCommands.RemoveBranch" Executed="RemoveBranch_Execute" />
-        <CommandBinding Command="commands:CustomCommands.AcceptBranch" Executed="AcceptBranch_Execute" />
-        <CommandBinding Command="commands:CustomCommands.CycleBranch" Executed="CycleBranch_Execute" />
-        <CommandBinding Command="commands:CustomCommands.RenameBranch" Executed="RenameBranch_Execute" />
+        <CommandBinding
+            Command="commands:CustomCommands.NewBranch"
+            Executed="NewBranch_Execute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.AddBranch"
+            Executed="AddBranch_Execute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.RemoveBranch"
+            Executed="RemoveBranch_Execute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.AcceptBranch"
+            Executed="AcceptBranch_Execute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.PrevBranch"
+            Executed="PrevBranch_Execute"
+            CanExecute="PrevBranch_CanExecute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.NextBranch"
+            Executed="NextBranch_Execute"
+            CanExecute="NextBranch_CanExecute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.RenameBranch"
+            Executed="RenameBranch_Execute"
+        />
         <CommandBinding
             Command="commands:CustomCommands.WatchFromStart"
             Executed="WatchFromStart_Execute"
@@ -92,9 +116,10 @@
             <MenuItem Style="{DynamicResource MenuItemStyle}" Header="B_ranch">
                 <MenuItem Header="_New Branch at Cursor" Command="commands:CustomCommands.NewBranch" />
                 <MenuItem Header="_Add Branch" Command="commands:CustomCommands.AddBranch" />
-                <MenuItem Header="_Change Active Branch" Command="commands:CustomCommands.CycleBranch" />
                 <MenuItem Header="_Remove Branch" Command="commands:CustomCommands.RemoveBranch" />
                 <MenuItem Header="Accept Branch" Command="commands:CustomCommands.AcceptBranch" />
+                <MenuItem Header="Previous Branch" Command="commands:CustomCommands.PrevBranch" />
+                <MenuItem Header="Next Branch" Command="commands:CustomCommands.NextBranch" />
                 <MenuItem Header="Rename Branch" Command="commands:CustomCommands.RenameBranch" />
             </MenuItem>
             <MenuItem Style="{DynamicResource MenuItemStyle}" Header="_Bird">

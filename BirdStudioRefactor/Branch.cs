@@ -109,11 +109,26 @@ namespace BirdStudioRefactor
             };
         }
 
-        public EditHistoryItem cycleBranchEdit()
+        public bool canChangeBranch(int offset)
         {
-            return new ChangeActiveBranchEdit {
+            return
+                (offset < 0 && activeBranch > 0) ||
+                (offset > 0 && activeBranch < branches.Count - 1);
+        }
+
+        public EditHistoryItem changeBranchEdit(int offset)
+        {
+            int newActiveBranch = activeBranch + offset;
+            if (newActiveBranch < 0)
+                newActiveBranch = 0;
+            if (newActiveBranch >= branches.Count)
+                newActiveBranch = branches.Count - 1;
+            if (newActiveBranch == activeBranch)
+                return null;
+            return new ChangeActiveBranchEdit
+            {
                 activeBranchInitial = activeBranch,
-                activeBranchFinal = (activeBranch + 1) % branches.Count,
+                activeBranchFinal = newActiveBranch,
             };
         }
 
