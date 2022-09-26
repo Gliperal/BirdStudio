@@ -1,4 +1,8 @@
-﻿namespace BirdStudioRefactor
+﻿using System;
+using System.IO;
+using System.Windows.Forms;
+
+namespace BirdStudioRefactor
 {
     class TopBottom
     {
@@ -6,7 +10,7 @@
         public double bottom;
     }
 
-    class StringUtil
+    static class Util
     {
         public static string removeSingleNewline(string text)
         {
@@ -45,6 +49,31 @@
                     return -1;
             }
             return i;
+        }
+
+        public static void handleCrash(Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception e)
+            {
+                bool writeSuccess = false;
+                try
+                {
+                    File.AppendAllText("error.log", e.ToString() + "\n\n");
+                    writeSuccess = true;
+                }
+                catch (Exception e2) { }
+                string message = "Unexpected error: " + e.Message +
+                    (writeSuccess
+                        ? ". Details written to error.log."
+                        : ". In attempting to log the error, a second error occured."
+                    );
+                MessageBox.Show(message);
+                Environment.Exit(1);
+            }
         }
     }
 }

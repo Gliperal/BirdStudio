@@ -188,7 +188,7 @@ namespace BirdStudioRefactor
                 if (node.Name == "inputs")
                 {
                     string inputs = node.InnerText;
-                    inputs = StringUtil.removeSandwichingNewlines(inputs);
+                    inputs = Util.removeSandwichingNewlines(inputs);
                     branch.nodes.Add(new TASEditorSection(inputs, parent));
                 }
                 else if (node.Name == "branch")

@@ -4,8 +4,6 @@ using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 
-using TasBird.Link;
-
 namespace BirdStudioRefactor
 {
     class Message
@@ -22,7 +20,7 @@ namespace BirdStudioRefactor
 
         public Message(NetworkStream stream)
         {
-            _type = Util.ReadString(stream);
+            _type = TasBird.Link.Util.ReadString(stream);
             if (!messageArgTypes.ContainsKey(_type))
                 throw new FormatException("Unrecognized message type: '" + _type + "'.");
             string[] argTypes = messageArgTypes[_type];
@@ -31,13 +29,13 @@ namespace BirdStudioRefactor
                 switch (argTypes[i])
                 {
                     case "float":
-                        _args[i] = Util.ReadFloat(stream);
+                        _args[i] = TasBird.Link.Util.ReadFloat(stream);
                         break;
                     case "string":
-                        _args[i] = Util.ReadString(stream);
+                        _args[i] = TasBird.Link.Util.ReadString(stream);
                         break;
                     case "int":
-                        _args[i] = Util.ReadInt(stream);
+                        _args[i] = TasBird.Link.Util.ReadInt(stream);
                         break;
                     default:
                         throw new Exception("programmer dumb");
@@ -105,17 +103,17 @@ namespace BirdStudioRefactor
         {
             if (!tcp.Connected)
                 return;
-            Util.WriteString(stream, command);
+            TasBird.Link.Util.WriteString(stream, command);
         }
 
         public static void sendLoadReplayCommand(string levelName, string replayBuffer, int breakpoint)
         {
             if (!tcp.Connected)
                 return;
-            Util.WriteString(stream, "LoadReplay");
-            Util.WriteString(stream, levelName);
-            Util.WriteString(stream, replayBuffer);
-            Util.WriteInt(stream, breakpoint);
+            TasBird.Link.Util.WriteString(stream, "LoadReplay");
+            TasBird.Link.Util.WriteString(stream, levelName);
+            TasBird.Link.Util.WriteString(stream, replayBuffer);
+            TasBird.Link.Util.WriteInt(stream, breakpoint);
         }
     }
 }

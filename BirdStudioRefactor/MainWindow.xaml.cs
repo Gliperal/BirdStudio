@@ -76,40 +76,58 @@ namespace BirdStudioRefactor
 
         private void OnReplaySaved(string levelName, string replayBuffer, int breakpoint)
         {
-            Replay replay;
-            try
+            Util.handleCrash(() =>
             {
-                replay = new Replay(replayBuffer, false);
-            }
-            catch (FormatException e) { return; }
-            List<Press> presses = replay.toPresses();
-            TASInputs newInputs = new TASInputs(presses);
-            editor.onReplaySaved(levelName, newInputs);
+                Replay replay;
+                try
+                {
+                    replay = new Replay(replayBuffer, false);
+                }
+                catch (FormatException e) { return; }
+                List<Press> presses = replay.toPresses();
+                TASInputs newInputs = new TASInputs(presses);
+                editor.onReplaySaved(levelName, newInputs);
+            });
         }
 
         private void NewCommand_Execute(object sender, RoutedEventArgs e)
         {
-            editor.neww();
+            Util.handleCrash(() =>
+            {
+                editor.neww();
+            });
         }
 
         private void OpenCommand_Execute(object sender, RoutedEventArgs e)
         {
-            editor.open();
+            Util.handleCrash(() =>
+            {
+                editor.open();
+            });
         }
 
         private void SaveCommand_Execute(object sender, RoutedEventArgs e)
         {
-            editor.save();
+            Util.handleCrash(() =>
+            {
+                editor.save();
+            });
         }
 
         private void SaveAsCommand_Execute(object sender, RoutedEventArgs e)
         {
-            editor.saveAs(null);
+            Util.handleCrash(() =>
+            {
+                editor.saveAs(null);
+            });
         }
 
         private void UndoCommand_Execute(object sender, RoutedEventArgs e)
         {
-            editor.undo();
+            Util.handleCrash(() =>
+            {
+                editor.undo();
+            });
         }
 
         private void UndoCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -119,7 +137,10 @@ namespace BirdStudioRefactor
 
         private void RedoCommand_Execute(object sender, RoutedEventArgs e)
         {
-            editor.redo();
+            Util.handleCrash(() =>
+            {
+                editor.redo();
+            });
         }
 
         private void RedoCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -129,7 +150,10 @@ namespace BirdStudioRefactor
 
         private void CommentCommand_Execute(object sender, RoutedEventArgs e)
         {
-            editor.comment();
+            Util.handleCrash(() =>
+            {
+                editor.comment();
+            });
         }
 
         private void TimestampCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -139,17 +163,26 @@ namespace BirdStudioRefactor
 
         private void TimestampCommand_Execute(object sender, RoutedEventArgs e)
         {
-            editor.timestampComment();
+            Util.handleCrash(() =>
+            {
+                editor.timestampComment();
+            });
         }
 
         private void NewBranch_Execute(object sender, RoutedEventArgs e)
         {
-            editor.newBranch();
+            Util.handleCrash(() =>
+            {
+                editor.newBranch();
+            });
         }
 
         private void AddBranch_Execute(object sender, RoutedEventArgs e)
         {
-            editor.addBranch();
+            Util.handleCrash(() =>
+            {
+                editor.addBranch();
+            });
         }
 
         private void PrevBranch_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -159,7 +192,10 @@ namespace BirdStudioRefactor
 
         private void PrevBranch_Execute(object sender, RoutedEventArgs e)
         {
-            editor.changeBranch(-1);
+            Util.handleCrash(() =>
+            {
+                editor.changeBranch(-1);
+            });
         }
 
         private void NextBranch_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -169,22 +205,34 @@ namespace BirdStudioRefactor
 
         private void NextBranch_Execute(object sender, RoutedEventArgs e)
         {
-            editor.changeBranch(1);
+            Util.handleCrash(() =>
+            {
+                editor.changeBranch(1);
+            });
         }
 
         private void RemoveBranch_Execute(object sender, RoutedEventArgs e)
         {
-            editor.removeBranch();
+            Util.handleCrash(() =>
+            {
+                editor.removeBranch();
+            });
         }
 
         private void AcceptBranch_Execute(object sender, RoutedEventArgs e)
         {
-            editor.acceptBranch();
+            Util.handleCrash(() =>
+            {
+                editor.acceptBranch();
+            });
         }
 
         private void RenameBranch_Execute(object sender, RoutedEventArgs e)
         {
-            editor.renameBranch();
+            Util.handleCrash(() =>
+            {
+                editor.renameBranch();
+            });
         }
 
         private void TCP_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -194,22 +242,34 @@ namespace BirdStudioRefactor
 
         private void WatchFromStart_Execute(object sender, RoutedEventArgs e)
         {
-            editor.watchFromStart();
+            Util.handleCrash(() =>
+            {
+                editor.watchFromStart();
+            });
         }
 
         private void WatchToCursor_Execute(object sender, RoutedEventArgs e)
         {
-            editor.watchToCursor();
+            Util.handleCrash(() =>
+            {
+                editor.watchToCursor();
+            });
         }
 
         private void PlayPause_Execute(object sender, RoutedEventArgs e)
         {
-            TcpManager.sendCommand("TogglePause");
+            Util.handleCrash(() =>
+            {
+                TcpManager.sendCommand("TogglePause");
+            });
         }
 
         private void StepFrame_Execute(object sender, RoutedEventArgs e)
         {
-            TcpManager.sendCommand("StepFrame");
+            Util.handleCrash(() =>
+            {
+                TcpManager.sendCommand("StepFrame");
+            });
         }
 
         private void updateColorScheme()
@@ -259,22 +319,25 @@ namespace BirdStudioRefactor
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            // Workaround for avalonEdit stealing my key gestures
-            if (e.Key == Key.LeftCtrl)
-                lCtrlDown = true;
-            if (e.Key == Key.RightCtrl)
-                rCtrlDown = true;
-            bool ctrlDown = lCtrlDown || rCtrlDown;
-            if (ctrlDown && e.Key == Key.Z)
+            Util.handleCrash(() =>
             {
-                editor.undo();
-                e.Handled = true;
-            }
-            if (ctrlDown && e.Key == Key.Y)
-            {
-                editor.redo();
-                e.Handled = true;
-            }
+                // Workaround for avalonEdit stealing my key gestures
+                if (e.Key == Key.LeftCtrl)
+                    lCtrlDown = true;
+                if (e.Key == Key.RightCtrl)
+                    rCtrlDown = true;
+                bool ctrlDown = lCtrlDown || rCtrlDown;
+                if (ctrlDown && e.Key == Key.Z)
+                {
+                    editor.undo();
+                    e.Handled = true;
+                }
+                if (ctrlDown && e.Key == Key.Y)
+                {
+                    editor.redo();
+                    e.Handled = true;
+                }
+            });
         }
 
         private void Window_PreviewKeyUp(object sender, KeyEventArgs e)

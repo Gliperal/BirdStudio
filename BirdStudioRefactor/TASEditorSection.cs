@@ -113,7 +113,7 @@ namespace BirdStudioRefactor
                 else
                 {
                     // Unless we're typing numbers in the middle of the number, default cursor to position 4
-                    int endOfNumbers = StringUtil.firstIndexThatIsNot(text, " \t0123456789", linesInfo.start);
+                    int endOfNumbers = Util.firstIndexThatIsNot(text, " \t0123456789", linesInfo.start);
                     if (!Char.IsDigit(insert[0]) || pos > endOfNumbers)
                         pos = endOfNumbers;
                 }
@@ -134,8 +134,8 @@ namespace BirdStudioRefactor
 
                 // Calculate new caret position, based on where caret appeared relative to the frame number
                 int caret = pos + insert.Length - linesInfo.start;
-                int newCaret = StringUtil.firstIndexThatIsNot(reformattedLine, " 0");
-                int i = StringUtil.firstIndexThatIsNot(line, " 0");
+                int newCaret = Util.firstIndexThatIsNot(reformattedLine, " 0");
+                int i = Util.firstIndexThatIsNot(line, " 0");
                 for (; i < caret && Char.IsDigit(line[i]); i++)
                     newCaret++;
                 EditHistoryItem edit = new ModifyTextEdit
@@ -290,7 +290,7 @@ namespace BirdStudioRefactor
                     newInputs.RemoveAt(0);
                 else
                 {
-                    int split = StringUtil.nthIndexOf(text, '\n', i);
+                    int split = Util.nthIndexOf(text, '\n', i);
                     string preText = text.Substring(0, split);
                     string oldBranchText = text.Substring(split + 1);
                     string newBranchText = "";
