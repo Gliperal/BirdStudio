@@ -585,14 +585,16 @@ namespace BirdStudioRefactor
             {
                 if (component == activeBlock)
                 {
-                    // TODO Bad hacky way to do this (won't even work with text wrap)
+                    component.UpdateLayout();
                     int caretOffset = activeBlock.CaretOffset;
                     var caretLine = activeBlock.Document.GetLineByOffset(caretOffset);
-                    double lineHeight = activeBlock.ActualHeight / activeBlock.Text.Split('\n').Length;
-                    double top = y + (caretLine.LineNumber - 1) * lineHeight;
+                    int caretColumn = caretOffset - caretLine.Offset + 1; // +1 because avalonEdit likes to 1-index
+                    ICSharpCode.AvalonEdit.TextViewPosition caretPos = new ICSharpCode.AvalonEdit.TextViewPosition(caretLine.LineNumber, caretColumn);
+                    Point top = activeBlock.TextArea.TextView.GetVisualPosition(caretPos, ICSharpCode.AvalonEdit.Rendering.VisualYPosition.LineTop);
+                    Point bottom = activeBlock.TextArea.TextView.GetVisualPosition(caretPos, ICSharpCode.AvalonEdit.Rendering.VisualYPosition.LineBottom);
                     return new TopBottom {
-                        top = top,
-                        bottom = top + lineHeight
+                        top = y + top.Y,
+                        bottom = y + bottom.Y
                     };
                 }
                 y += component.RenderSize.Height;

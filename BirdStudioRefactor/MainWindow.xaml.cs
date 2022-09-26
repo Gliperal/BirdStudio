@@ -42,36 +42,39 @@ namespace BirdStudioRefactor
 
         private void TalkWithGame()
         {
-            while (true)
+            Util.handleCrash(() =>
             {
-                if (!TcpManager.isConnected())
-                    TcpManager.connect(); // TODO need to update on main thread probably ??
-                Message message = TcpManager.listenForMessage();
-                if (message == null)
-                    continue;
-                switch (message.type)
+                while (true)
                 {
-                    case "SaveReplay":
-                        string levelName = (string)message.args[0];
-                        string replayBuffer = (string)message.args[1];
-                        int breakpoint = (int)message.args[2];
-                        OnReplaySaved(levelName, replayBuffer, breakpoint);
-                        break;
-                    case "Frame":
-                        // TODO when to set playback frame back to -1?
-                        int currentFrame = (int)message.args[0];
-                        editor.showPlaybackFrame(currentFrame);
-                        float pos_x = (float)message.args[1];
-                        float pos_y = (float)message.args[2];
-                        float vel_x = (float)message.args[3];
-                        float vel_y = (float)message.args[4];
-                        // TODO
-                        break;
-                    default:
-                        // TODO Log the unknown message.type
-                        break;
+                    if (!TcpManager.isConnected())
+                        TcpManager.connect(); // TODO need to update on main thread probably ??
+                    Message message = TcpManager.listenForMessage();
+                    if (message == null)
+                        continue;
+                    switch (message.type)
+                    {
+                        case "SaveReplay":
+                            string levelName = (string)message.args[0];
+                            string replayBuffer = (string)message.args[1];
+                            int breakpoint = (int)message.args[2];
+                            OnReplaySaved(levelName, replayBuffer, breakpoint);
+                            break;
+                        case "Frame":
+                            // TODO when to set playback frame back to -1?
+                            int currentFrame = (int)message.args[0];
+                            editor.showPlaybackFrame(currentFrame);
+                            float pos_x = (float)message.args[1];
+                            float pos_y = (float)message.args[2];
+                            float vel_x = (float)message.args[3];
+                            float vel_y = (float)message.args[4];
+                            // TODO
+                            break;
+                        default:
+                            // TODO Log the unknown message.type
+                            break;
+                    }
                 }
-            }
+            });
         }
 
         private void OnReplaySaved(string levelName, string replayBuffer, int breakpoint)
@@ -352,9 +355,9 @@ namespace BirdStudioRefactor
         {
             // Workaround for avalonEdit stealing my scroll inputs
             if (e.Delta > 0)
-                editorScrollViewer.LineUp();
+                editorScrollViewer.ScrollToVerticalOffset(editorScrollViewer.VerticalOffset - 64);
             else
-                editorScrollViewer.LineDown();
+                editorScrollViewer.ScrollToVerticalOffset(editorScrollViewer.VerticalOffset + 64);
             e.Handled = true;
         }
     }
