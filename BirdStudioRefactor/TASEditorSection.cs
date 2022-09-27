@@ -36,6 +36,7 @@ namespace BirdStudioRefactor
             TextArea.PreviewKeyDown += Editor_KeyDown;
             TextArea.TextEntering += Editor_TextEntering;
             TextChanged += Editor_TextChanged;
+            Document.UpdateFinished += Editor_UpdateFinished;
             GotKeyboardFocus += Editor_GainedFocus;
             LostKeyboardFocus += Editor_LostFocus;
             RequestBringIntoView += Editor_RequestBringIntoView;
@@ -198,23 +199,32 @@ namespace BirdStudioRefactor
             e.Handled = true;
         }
 
-        private void Editor_TextChanged(object sender, System.EventArgs e)
+        private void Editor_TextChanged(object sender, EventArgs e)
         {
-            // Catch copy/paste and drag&drop changes and include them in the edit history
+            // Catch copy/paste and drag&drop changes and include them in the
+            // edit history. Copy/paste loves to convert to windows line
+            // endings, so also nip that in the bud.
             if (Text != text)
             {
                 inputsData = null;
                 string oldText = text;
-                text = Text;
+                int cursorPosFinal = CaretOffset - Util.substringCount(Text, "\r\n", CaretOffset + 1);
+                text = Text.Replace("\r\n", "\n");
                 parent.editPerformed(this, new ModifyTextEdit
                 {
                     pos = 0,
                     textRemoved = oldText,
-                    textInserted = Text,
+                    textInserted = text,
                     cursorPosInitial = 0, // TODO
-                    cursorPosFinal = CaretOffset
+                    cursorPosFinal = cursorPosFinal,
                 });
             }
+        }
+
+        private void Editor_UpdateFinished(object sender, EventArgs e)
+        {
+            if (Text != text)
+                Text = text;
         }
 
         private void Editor_GainedFocus(object sender, KeyboardFocusChangedEventArgs e)

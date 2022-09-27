@@ -57,6 +57,18 @@ namespace BirdStudioRefactor
             return i;
         }
 
+        public static int substringCount(string str, string substr, int length = -1)
+        {
+            if (length < 0 || length > str.Length)
+                length = str.Length;
+            int end = length - substr.Length;
+            int count = 0;
+            for (int i = 0; i <= end; i++)
+                if (str.Substring(i).StartsWith(substr))
+                    count++;
+            return count;
+        }
+
         public static void handleCrash(Action action)
         {
             try
