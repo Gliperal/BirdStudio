@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using ICSharpCode.AvalonEdit;
 
 namespace BirdStudioRefactor
@@ -239,6 +240,7 @@ namespace BirdStudioRefactor
         {
             if (ignoreCaretChanges)
                 return;
+            // TODO Causes weird things to happen when clicking on a different branch while the currently selected line is out of focus
             parent.bringActiveLineToFocus();
         }
 
@@ -263,6 +265,8 @@ namespace BirdStudioRefactor
                 };
         }
 
+        private DispatcherOperation lastRedraw;
+
         public void showPlaybackFrame(int frame)
         {
             if (frame == -1)
@@ -273,7 +277,9 @@ namespace BirdStudioRefactor
                 int[] frameLocation = inputsData.locateFrame(frame);
                 bgRenderer.ShowActiveFrame(frameLocation[0], frameLocation[1]);
             }
-            App.Current.Dispatcher.Invoke((Action)delegate // need to update on main thread
+            if (lastRedraw != null)
+                lastRedraw.Abort();
+            lastRedraw = App.Current.Dispatcher.BeginInvoke((Action)delegate // need to update on main thread
             {
                 TextArea.TextView.Redraw();
             });

@@ -10,6 +10,12 @@ namespace BirdStudioRefactor
         public double bottom;
     }
 
+    class FrameAndBlock
+    {
+        public int frame;
+        public TASEditorSection block;
+    }
+
     static class Util
     {
         public static string removeSingleNewline(string text)

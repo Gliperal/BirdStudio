@@ -526,34 +526,33 @@ namespace BirdStudioRefactor
                 throw new EditTypeNotSupportedException();
         }
 
-        public int showPlaybackFrame(int frame, ref TASEditorSection highlightedSection, bool force=true)
+        int lists = 0;
+
+        public int listBlocksByStartFrame(List<FrameAndBlock> blocks, int startFrame = 0)
         {
-            // TODO This could be cached so as to not iterate through the branches every time
+            lists += 1;
+            if (lists == 10)
+                throw new Exception();
             foreach (IBranchSection node in nodes)
             {
-                bool lastChance = force && node == nodes[nodes.Count - 1];
                 if (node is TASEditorSection)
                 {
                     TASEditorSection inputNode = (TASEditorSection)node;
-                    int frameCount = inputNode.getInputsData().totalFrames();
-                    if (frame <= frameCount || lastChance)
+                    blocks.Add(new FrameAndBlock
                     {
-                        inputNode.showPlaybackFrame(frame);
-                        highlightedSection = inputNode;
-                        return 0;
-                    }
-                    frame -= frameCount;
+                        frame = startFrame,
+                        block = inputNode,
+                    });
+                    startFrame += inputNode.getInputsData().totalFrames();
                 }
                 else
                 {
                     BranchGroup branchNode = (BranchGroup)node;
                     Branch activeBranch = branchNode.branches[branchNode.activeBranch];
-                    frame = activeBranch.showPlaybackFrame(frame, ref highlightedSection, lastChance);
-                    if (frame == 0)
-                        return 0;
+                    startFrame = activeBranch.listBlocksByStartFrame(blocks, startFrame);
                 }
             }
-            return frame;
+            return startFrame;
         }
 
         public int getStartFrameOfBlock(TASEditorSection block)

@@ -20,6 +20,7 @@ namespace BirdStudioRefactor
         private bool tasEditedSinceLastWatch = true;
         private TASEditorSection highlightedSection;
         private int playbackFrame = -1;
+        private List<FrameAndBlock> blocksByStartFrame;
 
         public TASEditor(MainWindow window, StackPanel panel, ScrollViewer scrollViewer) : base(window)
         {
@@ -37,6 +38,7 @@ namespace BirdStudioRefactor
             editHistory.Add(edit);
             editHistoryLocation++;
             fileChanged();
+            blocksByStartFrame = null;
             if (!tasEditedSinceLastWatch)
             {
                 header.incrementRerecords();
@@ -257,13 +259,22 @@ namespace BirdStudioRefactor
 
         public void showPlaybackFrame(int frame)
         {
-            if (highlightedSection != null)
-                highlightedSection.showPlaybackFrame(-1);
-            playbackFrame = frame;
             if (frame == -1)
-                highlightedSection = null;
-            else
-                masterBranch.showPlaybackFrame(frame, ref highlightedSection);
+                return;
+            if (blocksByStartFrame == null)
+            {
+                blocksByStartFrame = new List<FrameAndBlock>();
+                masterBranch.listBlocksByStartFrame(blocksByStartFrame);
+            }
+            playbackFrame = frame;
+            FrameAndBlock fb = blocksByStartFrame.Find(fb => fb.frame >= frame);
+            if (fb == null)
+                fb = blocksByStartFrame[blocksByStartFrame.Count - 1];
+            TASEditorSection block = fb.block;
+            block.showPlaybackFrame(frame - fb.frame);
+            if (highlightedSection != null && highlightedSection != block)
+                highlightedSection.showPlaybackFrame(-1);
+            highlightedSection = block;
         }
 
         private void _watch(int breakpoint)
