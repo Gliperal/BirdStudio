@@ -39,6 +39,34 @@ namespace BirdStudioRefactor
             }
         }
 
+        public TASInputLine reformat(string favoredButtons)
+        {
+            HashSet<char> newButtons = new HashSet<char>();
+            foreach (char c in buttons)
+            {
+                if (newButtons.Contains(c))
+                    newButtons.Remove(c);
+                else
+                    newButtons.Add(c);
+            }
+            favoredButtons = favoredButtons.ToUpper();
+            if (newButtons.Contains('U') && newButtons.Contains('D'))
+            {
+                if (favoredButtons.Contains('D'))
+                    newButtons.Remove('U');
+                else
+                    newButtons.Remove('D');
+            }
+            if (newButtons.Contains('L') && newButtons.Contains('R'))
+            {
+                if (favoredButtons.Contains('R'))
+                    newButtons.Remove('L');
+                else
+                    newButtons.Remove('R');
+            }
+            return new TASInputLine(frames, string.Join("", newButtons));
+        }
+
         public bool Equals(TASInputLine that)
         {
             if (frames != that.frames)

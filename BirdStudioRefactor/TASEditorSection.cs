@@ -124,15 +124,7 @@ namespace BirdStudioRefactor
             TASInputLine inputLine = TASInputLine.from(line);
             if (inputLine != null && !insert.Contains('\n'))
             {
-                HashSet<char> buttons = new HashSet<char>();
-                foreach (char c in inputLine.buttons)
-                {
-                    if (buttons.Contains(c))
-                        buttons.Remove(c);
-                    else
-                        buttons.Add(c);
-                }
-                string reformattedLine = new TASInputLine(inputLine.frames, string.Join("", buttons)).toText();
+                string reformattedLine = inputLine.reformat(insert).toText();
 
                 // Calculate new caret position, based on where caret appeared relative to the frame number
                 int caret = pos + insert.Length - linesInfo.start;
