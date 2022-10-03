@@ -34,7 +34,9 @@ namespace BirdStudioRefactor
                 helpBlock.Visibility = Visibility.Visible;
             if (UserPreferences.get("autosave", "false") == "true")
                 autosaveMenuItem.IsChecked = true;
-            new Thread(new ThreadStart(TalkWithGame)).Start();
+            Thread t = new Thread(new ThreadStart(TalkWithGame));
+            t.IsBackground = true;
+            t.Start();
             this.PreviewKeyDown += Window_PreviewKeyDown;
             this.PreviewKeyUp += Window_PreviewKeyUp;
             this.PreviewMouseWheel += Window_PreviewMouseWheel;
