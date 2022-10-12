@@ -267,7 +267,7 @@ namespace BirdStudioRefactor
                 masterBranch.listBlocksByStartFrame(blocksByStartFrame);
             }
             playbackFrame = frame;
-            FrameAndBlock fb = blocksByStartFrame.Find(fb => fb.frame >= frame);
+            FrameAndBlock fb = blocksByStartFrame.FindLast(fb => fb.frame < frame);
             if (fb == null)
                 fb = blocksByStartFrame[blocksByStartFrame.Count - 1];
             TASEditorSection block = fb.block;

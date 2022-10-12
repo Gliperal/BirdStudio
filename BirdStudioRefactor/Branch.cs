@@ -526,13 +526,8 @@ namespace BirdStudioRefactor
                 throw new EditTypeNotSupportedException();
         }
 
-        int lists = 0;
-
         public int listBlocksByStartFrame(List<FrameAndBlock> blocks, int startFrame = 0)
         {
-            lists += 1;
-            if (lists == 10)
-                throw new Exception();
             foreach (IBranchSection node in nodes)
             {
                 if (node is TASEditorSection)
