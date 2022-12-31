@@ -22,11 +22,14 @@ namespace BirdStudioRefactor
         private int playbackFrame = -1;
         private List<FrameAndBlock> blocksByStartFrame;
 
-        public TASEditor(MainWindow window, StackPanel panel, ScrollViewer scrollViewer) : base(window)
+        public TASEditor(MainWindow window, StackPanel panel, ScrollViewer scrollViewer, string initialFile = null) : base(window)
         {
             this.panel = panel;
             this.scrollViewer = scrollViewer;
-            neww();
+            if (initialFile == null)
+                neww();
+            else
+                open(initialFile);
         }
 
         public void editPerformed(IEditable target, EditHistoryItem edit)

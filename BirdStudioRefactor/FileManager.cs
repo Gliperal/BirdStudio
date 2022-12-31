@@ -88,33 +88,36 @@ namespace BirdStudioRefactor
             _importFromFile(null);
         }
 
-        public void open()
+        public void open(string file = null)
         {
             if (!permissionToClose())
                 return;
-            string gameDirectory = null;
-            try
-            {
-                Process[] processes = Process.GetProcessesByName("TheKingsBird");
-                string path = processes.First().MainModule.FileName;
-                int i = path.LastIndexOf('\\');
-                gameDirectory = path.Substring(0, i + 1);
-            }
-            catch { }
 
-            string file;
-            using (OpenFileDialog openFileDialogue = new OpenFileDialog())
+            if (file == null)
             {
-                if (gameDirectory != null && File.Exists(gameDirectory + @"Replays\"))
-                    openFileDialogue.InitialDirectory = gameDirectory + @"Replays\";
-                else if (gameDirectory != null)
-                    openFileDialogue.InitialDirectory = gameDirectory;
-                openFileDialogue.Filter = "TAS files (*.tas)|*.tas|Replay files (*.txt)|*.txt|All files (*.*)|*.*";
-                openFileDialogue.RestoreDirectory = true;
-                if (openFileDialogue.ShowDialog() == DialogResult.OK)
-                    file = openFileDialogue.FileName;
-                else
-                    return;
+                string gameDirectory = null;
+                try
+                {
+                    Process[] processes = Process.GetProcessesByName("TheKingsBird");
+                    string path = processes.First().MainModule.FileName;
+                    int i = path.LastIndexOf('\\');
+                    gameDirectory = path.Substring(0, i + 1);
+                }
+                catch { }
+
+                using (OpenFileDialog openFileDialogue = new OpenFileDialog())
+                {
+                    if (gameDirectory != null && File.Exists(gameDirectory + @"Replays\"))
+                        openFileDialogue.InitialDirectory = gameDirectory + @"Replays\";
+                    else if (gameDirectory != null)
+                        openFileDialogue.InitialDirectory = gameDirectory;
+                    openFileDialogue.Filter = "TAS files (*.tas)|*.tas|Replay files (*.txt)|*.txt|All files (*.*)|*.*";
+                    openFileDialogue.RestoreDirectory = true;
+                    if (openFileDialogue.ShowDialog() == DialogResult.OK)
+                        file = openFileDialogue.FileName;
+                    else
+                        return;
+                }
             }
 
             try
