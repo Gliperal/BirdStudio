@@ -117,25 +117,31 @@ namespace BirdStudioRefactor
                     return;
             }
 
-            // TODO handle file IO exceptions
-            if (!file.EndsWith(".tas"))
+            try
             {
-                // replay file
-                try
+                if (!file.EndsWith(".tas"))
                 {
-                    Replay replay = new Replay(file);
-                    List<Press> presses = replay.toPresses();
-                    TASInputs inputs = new TASInputs(presses);
-                    _setTasFile(null);
-                    _importFromFile(inputs.toText("unknown", 0));
-                    return;
+                    // replay file
+                    try
+                    {
+                        Replay replay = new Replay(file);
+                        List<Press> presses = replay.toPresses();
+                        TASInputs inputs = new TASInputs(presses);
+                        _importFromFile(inputs.toText("unknown", 0));
+                        _setTasFile(null);
+                        return;
+                    }
+                    catch (FormatException ex) { }
                 }
-                catch (FormatException ex) { }
+                // tas file
+                string tas = File.ReadAllText(file);
+                _importFromFile(tas);
+                _setTasFile(file);
             }
-            // tas file
-            string tas = File.ReadAllText(file);
-            _setTasFile(file);
-            _importFromFile(tas);
+            catch (Exception e) // FormatException XmlException IOException
+            {
+                Util.logAndReportException(e);
+            }
         }
 
         public bool saveAs(string file)

@@ -224,14 +224,14 @@ namespace BirdStudioRefactor
             if (tas == null)
                 tas = DEFAULT_FILE_TEXT;
             tas = tas.Replace("\r\n", "\n");
+            if (!tas.Trim().StartsWith('<'))
+                tas = Util.convertOldFormatToNew(tas);
             XmlDocument xml = new XmlDocument();
             xml.LoadXml(tas);
-            // TODO Catch System.Xml.XmlException
             if (xml.DocumentElement.Name != "tas")
                 throw new FormatException();
             header = new TASEditorHeader(xml.DocumentElement.Attributes);
             masterBranch = Branch.fromXml(xml.DocumentElement, this);
-            // TODO Catch FormatException
             reloadComponents();
             tasEditedSinceLastWatch = true;
             _clearUndoStack();

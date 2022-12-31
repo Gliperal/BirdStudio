@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace BirdStudioRefactor
@@ -69,6 +71,23 @@ namespace BirdStudioRefactor
             return count;
         }
 
+        public static void logAndReportException(Exception e)
+        {
+            bool writeSuccess = false;
+            try
+            {
+                File.AppendAllText("error.log", e.ToString() + "\n\n");
+                writeSuccess = true;
+            }
+            catch (Exception e2) { }
+            string message = "Unexpected error: " + e.Message +
+                (writeSuccess
+                    ? ". Details written to error.log."
+                    : ". In attempting to log the error, a second error occured."
+                );
+            MessageBox.Show(message);
+        }
+
         public static void handleCrash(Action action)
         {
             try
@@ -77,21 +96,34 @@ namespace BirdStudioRefactor
             }
             catch (Exception e)
             {
-                bool writeSuccess = false;
-                try
-                {
-                    File.AppendAllText("error.log", e.ToString() + "\n\n");
-                    writeSuccess = true;
-                }
-                catch (Exception e2) { }
-                string message = "Unexpected error: " + e.Message +
-                    (writeSuccess
-                        ? ". Details written to error.log."
-                        : ". In attempting to log the error, a second error occured."
-                    );
-                MessageBox.Show(message);
+                logAndReportException(e);
                 Environment.Exit(1);
             }
+        }
+
+        public static string convertOldFormatToNew(string tas)
+        {
+            string stage = "Twin Tree Village";
+            string rerecords = "0";
+            List<string> lines = tas.Split('\n').ToList();
+            for (int i = 0; i < lines.Count;)
+            {
+                string line = lines[i].Trim();
+                if (line.StartsWith(">stage "))
+                {
+                    stage = line.Substring(7);
+                    lines.RemoveAt(i);
+                    continue;
+                }
+                else if (line.StartsWith(">rerecords "))
+                {
+                    rerecords = line.Substring(11);
+                    lines.RemoveAt(i);
+                    continue;
+                }
+                i++;
+            }
+            return "<tas stage=\"" + stage + "\" rerecords=\"" + rerecords + "\"><inputs>\n" + string.Join('\n', lines) + "\n</inputs></tas>";
         }
     }
 }
