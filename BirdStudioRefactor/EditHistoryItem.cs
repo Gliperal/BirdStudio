@@ -2,7 +2,7 @@
 
 namespace BirdStudioRefactor
 {
-    abstract class EditHistoryItem
+    public abstract class EditHistoryItem
     {
         public List<int> targetID;
     }

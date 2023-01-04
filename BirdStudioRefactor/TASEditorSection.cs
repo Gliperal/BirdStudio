@@ -10,7 +10,7 @@ using ICSharpCode.AvalonEdit;
 namespace BirdStudioRefactor
 {
     // TODO Maybe rename this to something like InputsBlock or InputsSection
-    class TASEditorSection : TextEditor, IBranchSection
+    public class TASEditorSection : TextEditor, IBranchSection
     {
         private TASEditor parent;
         private LineHighlighter bgRenderer;
@@ -312,7 +312,7 @@ namespace BirdStudioRefactor
                         nodeIndex = nodeIndex,
                         initialText = text,
                         preText = preText,
-                        branchGroupCopy = new BranchGroup(branches),
+                        branchGroupCopy = new BranchGroup(parent, branches),
                         postText = "",
                         parent = parent,
                     });

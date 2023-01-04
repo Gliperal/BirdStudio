@@ -6,7 +6,7 @@ using System.Xml;
 
 namespace BirdStudioRefactor
 {
-    enum EditableTargetType
+    public enum EditableTargetType
     {
         Any,
         InputBlock,
@@ -14,25 +14,25 @@ namespace BirdStudioRefactor
         BranchGroup,
     }
 
-    interface IBranchSection : IEditable
+    public interface IBranchSection : IEditable
     {
         public string getText();
         public IBranchSection clone();
     }
 
-    class BranchGroup : IBranchSection
+    public class BranchGroup : IBranchSection
     {
-        public TextBlock headerComponent;
+        private TASEditor editor;
+        public BranchGroupHeader headerComponent;
         public List<Branch> branches;
         public int activeBranch;
 
-        public BranchGroup(List<Branch> branches, int activeBranch = 0)
+        public BranchGroup(TASEditor editor, List<Branch> branches, int activeBranch = 0)
         {
+            this.editor = editor;
             this.branches = branches;
             this.activeBranch = activeBranch;
-            headerComponent = new TextBlock();
-            headerComponent.SetResourceReference(Control.BackgroundProperty, "TextBlock.Background");
-            headerComponent.SetResourceReference(Control.ForegroundProperty, "TextBlock.Foreground");
+            headerComponent = new BranchGroupHeader(this);
             updateHeader();
         }
 
@@ -41,12 +41,27 @@ namespace BirdStudioRefactor
             List<Branch> newBranches = new List<Branch>();
             foreach (Branch branch in branches)
                 newBranches.Add(branch.clone());
-            return new BranchGroup(newBranches, activeBranch);
+            return new BranchGroup(editor, newBranches, activeBranch);
         }
 
         public void updateHeader()
         {
-            headerComponent.Text = branches[activeBranch].getName();
+            headerComponent.setBranch(activeBranch + 1, branches[activeBranch].getName());
+        }
+
+        public void renameBranch()
+        {
+            headerComponent.beginRename();
+        }
+
+        public void requestBranchNameChange(string newName)
+        {
+            EditHistoryItem edit = new RenameBranchEdit
+            {
+                branchNameInitial = branches[activeBranch].getName(),
+                branchNameFinal = newName,
+            };
+            editor.requestEdit(branches[activeBranch], edit);
         }
 
         public string getText()
@@ -147,8 +162,9 @@ namespace BirdStudioRefactor
         }
     }
 
-    class Branch : IEditable
+    public class Branch : IEditable
     {
+        private TASEditor editor;
         private string name;
         List<IBranchSection> nodes = new List<IBranchSection>();
 
@@ -160,6 +176,7 @@ namespace BirdStudioRefactor
             nodes = new List<IBranchSection>();
             foreach (IBranchSection node in src.nodes)
                 nodes.Add(node.clone());
+            editor = src.editor;
         }
 
         public Branch clone()
@@ -175,6 +192,7 @@ namespace BirdStudioRefactor
             {
                 name = name,
                 nodes = nodes,
+                editor = parent,
             };
         }
 
@@ -182,7 +200,7 @@ namespace BirdStudioRefactor
         {
             XmlNode nameNode = xml.Attributes.GetNamedItem("name");
             string branchName = (nameNode != null) ? nameNode.InnerText : "unnamed branch";
-            Branch branch = new Branch { name = branchName };
+            Branch branch = new Branch { name = branchName, editor = parent };
             foreach (XmlNode node in xml.ChildNodes)
             {
                 if (node.Name == "inputs")
@@ -202,7 +220,7 @@ namespace BirdStudioRefactor
                     }
                     if (branches.Count == 0)
                         throw new FormatException();
-                    branch.nodes.Add(new BranchGroup(branches));
+                    branch.nodes.Add(new BranchGroup(parent, branches));
                 }
                 else
                     throw new FormatException();
@@ -369,41 +387,32 @@ namespace BirdStudioRefactor
                 return branch.nodes[id[i]];
         }
 
-        public EditHistoryItem renameBranchEdit(string newName)
-        {
-            return new RenameBranchEdit
-            {
-                branchNameInitial = name,
-                branchNameFinal = newName,
-            };
-        }
-
-        internal EditHistoryItem newBranchGroupEdit(int inputBlockIndex, TASEditor parent)
+        internal EditHistoryItem newBranchGroupEdit(int inputBlockIndex)
         {
             TASEditorSection inputs = (TASEditorSection)nodes[inputBlockIndex];
             string[] text = inputs.splitOutBranch();
             List<Branch> branches = new List<Branch>();
-            branches.Add(fromText("unnamed branch", "", parent));
-            branches.Add(fromText("main branch", text[1], parent));
+            branches.Add(fromText("unnamed branch", "", editor));
+            branches.Add(fromText("main branch", text[1], editor));
             return new NewBranchGroupEdit
             {
                 nodeIndex = inputBlockIndex,
                 initialText = inputs.getText(),
                 preText = text[0],
-                branchGroupCopy = new BranchGroup(branches),
+                branchGroupCopy = new BranchGroup(editor, branches),
                 postText = text[2],
-                parent = parent,
+                parent = editor,
             };
         }
 
-        internal EditHistoryItem deleteBranchGroupEdit(int branchGroupIndex, TASEditor parent)
+        internal EditHistoryItem deleteBranchGroupEdit(int branchGroupIndex)
         {
             DeleteBranchGroupEdit edit = new DeleteBranchGroupEdit
             {
                 nodeIndex = branchGroupIndex,
                 branchGroupCopy = (BranchGroup)nodes[branchGroupIndex].clone(),
                 replacementText = "",
-                parent = parent,
+                parent = editor,
             };
             if (branchGroupIndex > 0 && nodes[branchGroupIndex - 1] is TASEditorSection)
             {
@@ -422,14 +431,14 @@ namespace BirdStudioRefactor
             return edit;
         }
 
-        internal EditHistoryItem acceptBranchGroupEdit(int branchGroupIndex, TASEditor parent)
+        internal EditHistoryItem acceptBranchGroupEdit(int branchGroupIndex)
         {
             DeleteBranchGroupEdit edit = new DeleteBranchGroupEdit
             {
                 nodeIndex = branchGroupIndex,
                 branchGroupCopy = (BranchGroup)nodes[branchGroupIndex].clone(),
                 replacementText = nodes[branchGroupIndex].getText(),
-                parent = parent,
+                parent = editor,
             };
             if (branchGroupIndex > 0 && nodes[branchGroupIndex - 1] is TASEditorSection)
             {

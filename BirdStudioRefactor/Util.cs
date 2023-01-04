@@ -6,19 +6,19 @@ using System.Windows.Forms;
 
 namespace BirdStudioRefactor
 {
-    class TopBottom
+    public class TopBottom
     {
         public double top;
         public double bottom;
     }
 
-    class FrameAndBlock
+    public class FrameAndBlock
     {
         public int frame;
         public TASEditorSection block;
     }
 
-    static class Util
+    public static class Util
     {
         public static string removeSingleNewline(string text)
         {

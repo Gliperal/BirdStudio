@@ -7,7 +7,7 @@ using System.Xml;
 
 namespace BirdStudioRefactor
 {
-    class TASEditor : FileManager
+    public class TASEditor : FileManager
     {
         private const string DEFAULT_FILE_TEXT = "<tas stage=\"Twin Tree Village\"><inputs>  29\n</inputs></tas>";
 
@@ -121,7 +121,7 @@ namespace BirdStudioRefactor
             int inputBlockIndex = id[id.Count - 1];
             id.RemoveAt(id.Count - 1);
             Branch target = (Branch)masterBranch.getEditable(id);
-            EditHistoryItem edit = target.newBranchGroupEdit(inputBlockIndex, this);
+            EditHistoryItem edit = target.newBranchGroupEdit(inputBlockIndex);
             requestEdit(target, edit);
         }
 
@@ -188,7 +188,7 @@ namespace BirdStudioRefactor
             id.RemoveAt(id.Count - 1);
             Branch target = (Branch)masterBranch.getEditable(id);
             // TODO Confirmation dialogue ("Are you sure you want to delete _ branches (_ subbranches) (_ lines)?")
-            EditHistoryItem edit = target.deleteBranchGroupEdit(branchGroupIndex, this);
+            EditHistoryItem edit = target.deleteBranchGroupEdit(branchGroupIndex);
             requestEdit(target, edit);
         }
 
@@ -202,24 +202,19 @@ namespace BirdStudioRefactor
             id.RemoveAt(id.Count - 1);
             Branch target = (Branch)masterBranch.getEditable(id);
             // TODO Confirmation dialogue ("Are you sure you want to delete _ branches (_ subbranches) (_ lines)?")
-            EditHistoryItem edit = target.acceptBranchGroupEdit(branchGroupIndex, this);
+            EditHistoryItem edit = target.acceptBranchGroupEdit(branchGroupIndex);
             requestEdit(target, edit);
         }
 
         public void renameBranch()
         {
             IInputElement focusedElement = FocusManager.GetFocusedElement(panel);
-            List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.Branch);
+            // This approach kinda sucks since we have to search for the target id twice, but w/e
+            List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.BranchGroup);
             if (id == null)
                 return;
-            Branch target = (Branch)masterBranch.getEditable(id);
-            RenameDialogue dialogue = new RenameDialogue();
-            bool? res = dialogue.ShowDialog();
-            if (res != true)
-                return;
-            string newName = dialogue.ResponseText;
-            EditHistoryItem edit = target.renameBranchEdit(newName);
-            requestEdit(target, edit);
+            BranchGroup target = (BranchGroup)masterBranch.getEditable(id);
+            target.renameBranch();
         }
 
         protected override void _importFromFile(string tas)

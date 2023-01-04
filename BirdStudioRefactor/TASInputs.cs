@@ -2,7 +2,7 @@
 
 namespace BirdStudioRefactor
 {
-    class TASInputs
+    public class TASInputs
     {
         public const string BUTTONS = "RLUDJXGCQMN";
 

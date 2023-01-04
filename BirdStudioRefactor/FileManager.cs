@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace BirdStudioRefactor
 {
-    abstract class FileManager
+    public abstract class FileManager
     {
         private MainWindow window;
         private string filePath;
