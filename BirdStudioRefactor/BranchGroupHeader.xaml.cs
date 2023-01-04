@@ -17,8 +17,6 @@ namespace BirdStudioRefactor
         {
             this.parent = parent;
             InitializeComponent();
-            SetResourceReference(BackgroundProperty, "TextBlock.Background");
-            SetResourceReference(ForegroundProperty, "TextBlock.Foreground");
             this.LostFocus += Header_OnLostFocus;
             this.KeyDown += Header_OnKeyDown;
             this.MouseRightButtonUp += Header_OnMouseRightButtonUp;
@@ -51,10 +49,10 @@ namespace BirdStudioRefactor
             editing = false;
         }
 
-        public void setBranch(int number, string name)
+        public void setBranch(string prefix, string name)
         {
             this.name = name;
-            nameDisplay.Text = $"[{number}] {name}";
+            nameDisplay.Text = $"{prefix} {name}";
         }
 
         public void Header_OnLostFocus(object sender, RoutedEventArgs e)

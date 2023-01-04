@@ -6,10 +6,21 @@
              xmlns:local="clr-namespace:BirdStudioRefactor"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <StackPanel>
-            <TextBlock Name="nameDisplay" />
-            <TextBox Name="nameEdit" Visibility="Collapsed" />
-        </StackPanel>
-    </Grid>
+    <StackPanel Background="{DynamicResource BranchHeader.Background}">
+        <TextBlock
+            Name="nameDisplay"
+            FontFamily="Consolas"
+            FontSize="15"
+            TextAlignment="Center"
+            Foreground="{DynamicResource BranchHeader.Foreground}"
+        />
+        <TextBox
+            Name="nameEdit"
+            Visibility="Collapsed"
+            FontFamily="Consolas"
+            FontSize="15"
+            Background="{DynamicResource BranchHeader.Background}"
+            Foreground="{DynamicResource BranchHeader.Foreground}"
+        />
+    </StackPanel>
 </UserControl>

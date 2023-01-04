@@ -89,6 +89,9 @@ namespace BirdStudioRefactor
             resources["ScrollBar.Disabled.Glyph"] = new SolidColorBrush(Color.FromArgb(0xFF, 0xBF, 0xBF, 0xBF));
             resources["TextBox.Background"] = Brushes.White;
             resources["TextBox.Foreground"] = Brushes.Black;
+            resources["BranchHeader.Background"] = resources["TextBlock.Background"];
+            resources["BranchHeader.Foreground"] = Brushes.DarkOrchid;
+            resources["BranchSeparator.Background"] = resources["BranchHeader.Foreground"];
         }
 
         public void DarkMode()
@@ -139,6 +142,9 @@ namespace BirdStudioRefactor
             resources["ScrollBar.Disabled.Glyph"] = Brushes.Gray;
             resources["TextBox.Background"] = resources["TextBlock.Background"];
             resources["TextBox.Foreground"] = resources["TextBlock.Foreground"];
+            resources["BranchHeader.Background"] = resources["TextBlock.Background"];
+            resources["BranchHeader.Foreground"] = Brushes.MediumOrchid;
+            resources["BranchSeparator.Background"] = resources["BranchHeader.Foreground"];
         }
     }
 }

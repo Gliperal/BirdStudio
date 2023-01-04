@@ -46,7 +46,7 @@ namespace BirdStudioRefactor
 
         public void updateHeader()
         {
-            headerComponent.setBranch(activeBranch + 1, branches[activeBranch].getName());
+            headerComponent.setBranch($"({activeBranch + 1}/{branches.Count})", branches[activeBranch].getName());
         }
 
         public void renameBranch()
@@ -251,6 +251,13 @@ namespace BirdStudioRefactor
             return name;
         }
 
+        private Separator branchSeparator()
+        {
+            Separator s = new Separator();
+            s.SetResourceReference(Control.BackgroundProperty, "BranchSeparator.Background");
+            return s;
+        }
+
         public List<UIElement> getComponents()
         {
             List<UIElement> components = new List<UIElement>();
@@ -262,12 +269,11 @@ namespace BirdStudioRefactor
                 {
                     BranchGroup branchGroup = (BranchGroup)node;
                     branchGroup.updateHeader();
-                    // TODO better UI style
-                    components.Add(new Separator());
+                    components.Add(branchSeparator());
                     components.Add(branchGroup.headerComponent);
                     components.AddRange(branchGroup.branches[branchGroup.activeBranch].getComponents());
                     if (node != nodes[nodes.Count - 1])
-                        components.Add(new Separator());
+                        components.Add(branchSeparator());
                 }
             }
             return components;
