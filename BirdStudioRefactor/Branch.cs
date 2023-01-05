@@ -398,14 +398,16 @@ namespace BirdStudioRefactor
             TASEditorSection inputs = (TASEditorSection)nodes[inputBlockIndex];
             string[] text = inputs.splitOutBranch();
             List<Branch> branches = new List<Branch>();
-            branches.Add(fromText("unnamed branch", "", editor));
             branches.Add(fromText("main branch", text[1], editor));
+            branches.Add(fromText("unnamed branch", "", editor));
+            BranchGroup branchGroupCopy = new BranchGroup(editor, branches);
+            branchGroupCopy.activeBranch = 1;
             return new NewBranchGroupEdit
             {
                 nodeIndex = inputBlockIndex,
                 initialText = inputs.getText(),
                 preText = text[0],
-                branchGroupCopy = new BranchGroup(editor, branches),
+                branchGroupCopy = branchGroupCopy,
                 postText = text[2],
                 parent = editor,
             };
