@@ -198,8 +198,7 @@ namespace BirdStudioRefactor
 
         public static Branch fromXml(XmlNode xml, TASEditor parent)
         {
-            XmlNode nameNode = xml.Attributes.GetNamedItem("name");
-            string branchName = (nameNode != null) ? nameNode.InnerText : "unnamed branch";
+            string branchName = Util.getXmlAttribute(xml, "name", "unnamed branch");
             Branch branch = new Branch { name = branchName, editor = parent };
             foreach (XmlNode node in xml.ChildNodes)
             {
@@ -211,6 +210,7 @@ namespace BirdStudioRefactor
                 }
                 else if (node.Name == "branch")
                 {
+                    int activeBranch = Util.getXmlAttributeAsInt(node, "active", 0);
                     List<Branch> branches = new List<Branch>();
                     foreach (XmlNode x in node.ChildNodes)
                     {
@@ -220,7 +220,7 @@ namespace BirdStudioRefactor
                     }
                     if (branches.Count == 0)
                         throw new FormatException();
-                    branch.nodes.Add(new BranchGroup(parent, branches));
+                    branch.nodes.Add(new BranchGroup(parent, branches, activeBranch));
                 }
                 else
                     throw new FormatException();
@@ -237,9 +237,9 @@ namespace BirdStudioRefactor
                     contents += "<inputs>\n" + ((TASEditorSection)node).getText() + "\n</inputs>";
                 else
                 {
-                    contents += "<branch>";
+                    contents += $"<branch active=\"{((BranchGroup)node).activeBranch}\">";
                     foreach (Branch branch in ((BranchGroup)node).branches)
-                        contents += "<b name=\"" + branch.name + "\">" + branch.toInnerXml() + "</b>";
+                        contents += $"<b name=\"{branch.name}\">{branch.toInnerXml()}</b>";
                     contents += "</branch>";
                 }
             }

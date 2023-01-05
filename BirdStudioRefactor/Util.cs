@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using System.Xml;
 
 namespace BirdStudioRefactor
 {
@@ -124,6 +125,27 @@ namespace BirdStudioRefactor
                 i++;
             }
             return "<tas stage=\"" + stage + "\" rerecords=\"" + rerecords + "\"><inputs>\n" + string.Join('\n', lines) + "\n</inputs></tas>";
+        }
+
+        public static string getXmlAttribute(XmlNode node, string name, string defaultValue)
+        {
+            XmlNode attributeNode = node.Attributes.GetNamedItem(name);
+            if (attributeNode == null)
+                return defaultValue;
+            else
+                return attributeNode.InnerText;
+        }
+
+        public static int getXmlAttributeAsInt(XmlNode node, string name, int defaultValue)
+        {
+            XmlNode attributeNode = node.Attributes.GetNamedItem(name);
+            if (attributeNode != null)
+            {
+                int res;
+                if (Int32.TryParse(attributeNode.InnerText, out res))
+                    return res;
+            }
+            return defaultValue;
         }
     }
 }
