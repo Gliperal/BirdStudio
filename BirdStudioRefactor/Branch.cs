@@ -305,7 +305,16 @@ namespace BirdStudioRefactor
                 }
                 else
                 {
-                    List<Branch> branches = ((BranchGroup)nodes[i]).branches;
+                    BranchGroup branchGroupNode = (BranchGroup)nodes[i];
+                    if (
+                        element == branchGroupNode.headerComponent ||
+                        element == branchGroupNode.headerComponent.nameDisplay ||
+                        element == branchGroupNode.headerComponent.nameEdit
+                    ) {
+                        target = nodes[i];
+                        return new List<int> { i };
+                    }
+                    List <Branch> branches = branchGroupNode.branches;
                     for (int j = 0; j < branches.Count; j++)
                     {
                         List<int> id = branches[j]._getEditable(element, ref target);
@@ -362,8 +371,9 @@ namespace BirdStudioRefactor
                         id.RemoveAt(id.Count - 1);
                     return id;
                 case EditableTargetType.InputBlock:
-                    // TODO If branch group selected, then active branch inputs
-                    return id;
+                    if (target is TASEditorSection)
+                        return id;
+                    return null;
                 case EditableTargetType.BranchGroup:
                     if (target is BranchGroup)
                         return id;
