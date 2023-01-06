@@ -132,7 +132,7 @@ namespace BirdStudioRefactor
             if (id == null)
                 return;
             BranchGroup target = (BranchGroup)masterBranch.getEditable(id);
-            EditHistoryItem edit = target.addBranchEdit(this);
+            EditHistoryItem edit = target.addBranchEdit();
             requestEdit(target, edit);
         }
 

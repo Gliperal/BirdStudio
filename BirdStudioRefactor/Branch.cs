@@ -116,13 +116,13 @@ namespace BirdStudioRefactor
                 throw new EditTypeNotSupportedException();
         }
 
-        public EditHistoryItem addBranchEdit(TASEditor parent)
+        public EditHistoryItem addBranchEdit()
         {
             // TODO name?
             return new AddBranchEdit
             {
                 activeBranchInitial = activeBranch,
-                branchCopy = Branch.fromText("unnamed branch", "", parent),
+                branchCopy = Branch.fromText("unnamed branch", "", editor),
             };
         }
 
@@ -184,29 +184,29 @@ namespace BirdStudioRefactor
             return new Branch(this);
         }
 
-        public static Branch fromText(string name, string text, TASEditor parent)
+        public static Branch fromText(string name, string text, TASEditor editor)
         {
             List<IBranchSection> nodes = new List<IBranchSection>();
-            nodes.Add(new TASEditorSection(text, parent));
+            nodes.Add(new TASEditorSection(text, editor));
             return new Branch
             {
                 name = name,
                 nodes = nodes,
-                editor = parent,
+                editor = editor,
             };
         }
 
-        public static Branch fromXml(XmlNode xml, TASEditor parent)
+        public static Branch fromXml(XmlNode xml, TASEditor editor)
         {
             string branchName = Util.getXmlAttribute(xml, "name", "unnamed branch");
-            Branch branch = new Branch { name = branchName, editor = parent };
+            Branch branch = new Branch { name = branchName, editor = editor };
             foreach (XmlNode node in xml.ChildNodes)
             {
                 if (node.Name == "inputs")
                 {
                     string inputs = node.InnerText;
                     inputs = Util.removeSandwichingNewlines(inputs);
-                    branch.nodes.Add(new TASEditorSection(inputs, parent));
+                    branch.nodes.Add(new TASEditorSection(inputs, editor));
                 }
                 else if (node.Name == "branch")
                 {
@@ -216,11 +216,11 @@ namespace BirdStudioRefactor
                     {
                         if (x.Name != "b")
                             throw new FormatException();
-                        branches.Add(fromXml(x, parent));
+                        branches.Add(fromXml(x, editor));
                     }
                     if (branches.Count == 0)
                         throw new FormatException();
-                    branch.nodes.Add(new BranchGroup(parent, branches, activeBranch));
+                    branch.nodes.Add(new BranchGroup(editor, branches, activeBranch));
                 }
                 else
                     throw new FormatException();
@@ -409,7 +409,6 @@ namespace BirdStudioRefactor
                 preText = text[0],
                 branchGroupCopy = branchGroupCopy,
                 postText = text[2],
-                parent = editor,
             };
         }
 
@@ -420,7 +419,6 @@ namespace BirdStudioRefactor
                 nodeIndex = branchGroupIndex,
                 branchGroupCopy = (BranchGroup)nodes[branchGroupIndex].clone(),
                 replacementText = "",
-                parent = editor,
             };
             if (branchGroupIndex > 0 && nodes[branchGroupIndex - 1] is TASEditorSection)
             {
@@ -446,7 +444,6 @@ namespace BirdStudioRefactor
                 nodeIndex = branchGroupIndex,
                 branchGroupCopy = (BranchGroup)nodes[branchGroupIndex].clone(),
                 replacementText = nodes[branchGroupIndex].getText(),
-                parent = editor,
             };
             if (branchGroupIndex > 0 && nodes[branchGroupIndex - 1] is TASEditorSection)
             {
@@ -499,17 +496,17 @@ namespace BirdStudioRefactor
                 // TODO any time things are deleted, the focussed element should change
                 nodes.RemoveAt(newEdit.nodeIndex);
                 if (newEdit.postText != null)
-                    nodes.Insert(newEdit.nodeIndex, new TASEditorSection(newEdit.postText, newEdit.parent));
+                    nodes.Insert(newEdit.nodeIndex, new TASEditorSection(newEdit.postText, editor));
                 nodes.Insert(newEdit.nodeIndex, newEdit.branchGroupCopy.clone());
                 if (newEdit.preText != null)
-                    nodes.Insert(newEdit.nodeIndex, new TASEditorSection(newEdit.preText, newEdit.parent));
+                    nodes.Insert(newEdit.nodeIndex, new TASEditorSection(newEdit.preText, editor));
             }
             else if (edit is DeleteBranchGroupEdit)
             {
                 DeleteBranchGroupEdit deleteEdit = (DeleteBranchGroupEdit)edit;
                 int deleteCount = (deleteEdit.preText == null ? 0 : 1) + 1 + (deleteEdit.postText == null ? 0 : 1);
                 nodes.RemoveRange(deleteEdit.nodeIndex, deleteCount);
-                nodes.Insert(deleteEdit.nodeIndex, new TASEditorSection(deleteEdit.replacementText, deleteEdit.parent));
+                nodes.Insert(deleteEdit.nodeIndex, new TASEditorSection(deleteEdit.replacementText, editor));
             }
             else
                 throw new EditTypeNotSupportedException();
@@ -527,17 +524,17 @@ namespace BirdStudioRefactor
                 NewBranchGroupEdit newEdit = (NewBranchGroupEdit)edit;
                 int deleteCount = (newEdit.preText != null ? 1 : 0) + 1 + (newEdit.postText != null ? 1 : 0);
                 nodes.RemoveRange(newEdit.nodeIndex, deleteCount);
-                nodes.Insert(newEdit.nodeIndex, new TASEditorSection(newEdit.initialText, newEdit.parent));
+                nodes.Insert(newEdit.nodeIndex, new TASEditorSection(newEdit.initialText, editor));
             }
             else if (edit is DeleteBranchGroupEdit)
             {
                 DeleteBranchGroupEdit deleteEdit = (DeleteBranchGroupEdit)edit;
                 nodes.RemoveAt(deleteEdit.nodeIndex);
                 if (deleteEdit.postText != null)
-                    nodes.Insert(deleteEdit.nodeIndex, new TASEditorSection(deleteEdit.postText, deleteEdit.parent));
+                    nodes.Insert(deleteEdit.nodeIndex, new TASEditorSection(deleteEdit.postText, editor));
                 nodes.Insert(deleteEdit.nodeIndex, deleteEdit.branchGroupCopy.clone());
                 if (deleteEdit.preText != null)
-                    nodes.Insert(deleteEdit.nodeIndex, new TASEditorSection(deleteEdit.preText, deleteEdit.parent));
+                    nodes.Insert(deleteEdit.nodeIndex, new TASEditorSection(deleteEdit.preText, editor));
             }
             else
                 throw new EditTypeNotSupportedException();

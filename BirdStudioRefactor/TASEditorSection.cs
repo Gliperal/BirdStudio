@@ -12,16 +12,16 @@ namespace BirdStudioRefactor
     // TODO Maybe rename this to something like InputsBlock or InputsSection
     public class TASEditorSection : TextEditor, IBranchSection
     {
-        private TASEditor parent;
+        private TASEditor editor;
         private LineHighlighter bgRenderer;
 
         private string text;
         bool ignoreCaretChanges;
         private TASInputs inputsData;
 
-        public TASEditorSection(string initialText, TASEditor parent)
+        public TASEditorSection(string initialText, TASEditor editor)
         {
-            this.parent = parent;
+            this.editor = editor;
             Padding = new Thickness(10, 0, 0, 0);
             FontFamily = new FontFamily("Consolas");
             FontSize = 19;
@@ -49,7 +49,7 @@ namespace BirdStudioRefactor
 
         public IBranchSection clone()
         {
-            return new TASEditorSection(text, parent);
+            return new TASEditorSection(text, editor);
         }
 
         public string getText()
@@ -140,7 +140,7 @@ namespace BirdStudioRefactor
                     cursorPosInitial = CaretOffset,
                     cursorPosFinal = linesInfo.start + newCaret
                 };
-                parent.requestEdit(this, edit);
+                editor.requestEdit(this, edit);
             }
             else
             {
@@ -152,7 +152,7 @@ namespace BirdStudioRefactor
                     cursorPosInitial = CaretOffset,
                     cursorPosFinal = pos + insert.Length
                 };
-                parent.requestEdit(this, edit);
+                editor.requestEdit(this, edit);
             }
         }
 
@@ -202,7 +202,7 @@ namespace BirdStudioRefactor
                 string oldText = text;
                 int cursorPosFinal = CaretOffset - Util.substringCount(Text, "\r\n", CaretOffset + 1);
                 text = Text.Replace("\r\n", "\n");
-                parent.editPerformed(this, new ModifyTextEdit
+                editor.editPerformed(this, new ModifyTextEdit
                 {
                     pos = 0,
                     textRemoved = oldText,
@@ -243,7 +243,7 @@ namespace BirdStudioRefactor
             if (ignoreCaretChanges)
                 return;
             // TODO Causes weird things to happen when clicking on a different branch while the currently selected line is out of focus
-            parent.bringActiveLineToFocus();
+            editor.bringActiveLineToFocus();
         }
 
         public string[] splitOutBranch()
@@ -305,16 +305,15 @@ namespace BirdStudioRefactor
                     foreach (TASInputLine inputLine in newInputs)
                         newBranchText += inputLine.toText() + '\n';
                     List<Branch> branches = new List<Branch>();
-                    branches.Add(Branch.fromText("recorded inputs", newBranchText, parent));
-                    branches.Add(Branch.fromText("main branch", oldBranchText, parent));
-                    parent.requestEdit(target, new NewBranchGroupEdit
+                    branches.Add(Branch.fromText("recorded inputs", newBranchText, editor));
+                    branches.Add(Branch.fromText("main branch", oldBranchText, editor));
+                    editor.requestEdit(target, new NewBranchGroupEdit
                     {
                         nodeIndex = nodeIndex,
                         initialText = text,
                         preText = preText,
-                        branchGroupCopy = new BranchGroup(parent, branches),
+                        branchGroupCopy = new BranchGroup(editor, branches),
                         postText = "",
-                        parent = parent,
                     });
                     return true;
                 }
@@ -326,7 +325,7 @@ namespace BirdStudioRefactor
                 string addedText = "";
                 foreach (TASInputLine inputLine in newInputs)
                     addedText += inputLine.toText() + '\n';
-                parent.requestEdit(this, new ModifyTextEdit
+                editor.requestEdit(this, new ModifyTextEdit
                 {
                     pos = text.Length,
                     textRemoved = "",
@@ -368,7 +367,7 @@ namespace BirdStudioRefactor
                 cursorPosInitial = CaretOffset,
                 cursorPosFinal = linesInfo.start
             };
-            parent.requestEdit(this, edit);
+            editor.requestEdit(this, edit);
         }
 
         public void insertLine(string timestampComment)
@@ -389,7 +388,7 @@ namespace BirdStudioRefactor
                 edit.textInserted = "\n" + timestampComment;
                 edit.cursorPosFinal++;
             }
-            parent.requestEdit(this, edit);
+            editor.requestEdit(this, edit);
         }
     }
 }

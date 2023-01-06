@@ -23,7 +23,6 @@ namespace BirdStudioRefactor
         public string preText;
         public BranchGroup branchGroupCopy;
         public string postText;
-        public TASEditor parent;
     }
 
     class AddBranchEdit : EditHistoryItem
@@ -58,6 +57,5 @@ namespace BirdStudioRefactor
         public BranchGroup branchGroupCopy;
         public string postText;
         public string replacementText;
-        public TASEditor parent;
     }
 }
