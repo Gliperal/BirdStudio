@@ -299,7 +299,7 @@ namespace BirdStudioRefactor
                 else
                 {
                     int split = Util.nthIndexOf(text, '\n', i);
-                    string preText = text.Substring(0, split);
+                    string preText = (split > 0) ? text.Substring(0, split) : null;
                     string oldBranchText = text.Substring(split + 1);
                     string newBranchText = "";
                     foreach (TASInputLine inputLine in newInputs)
