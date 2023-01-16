@@ -284,7 +284,8 @@ namespace BirdStudioRefactor
             List<Press> presses = tas.toPresses();
             Replay replay = new Replay(presses);
             string replayBuffer = replay.writeString();
-            TcpManager.sendLoadReplayCommand(header.stage(), replayBuffer, breakpoint);
+            float[] spawn = header.spawn();
+            TcpManager.sendLoadReplayCommand(header.stage(), replayBuffer, breakpoint, spawn);
             tasEditedSinceLastWatch = false;
         }
 

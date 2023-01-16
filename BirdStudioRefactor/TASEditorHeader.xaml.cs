@@ -51,7 +51,7 @@ namespace BirdStudioRefactor
                 if (coords.Length != 2)
                     return null;
                 float x = float.Parse(coords[0].Trim());
-                float y = float.Parse(coords[0].Trim());
+                float y = float.Parse(coords[1].Trim());
                 return new float[] { x, y };
             }
             catch (Exception ex)

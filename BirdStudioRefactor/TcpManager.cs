@@ -106,14 +106,19 @@ namespace BirdStudioRefactor
             TasBird.Link.Util.WriteString(stream, command);
         }
 
-        public static void sendLoadReplayCommand(string levelName, string replayBuffer, int breakpoint)
+        public static void sendLoadReplayCommand(string levelName, string replayBuffer, int breakpoint, float[] spawn = null)
         {
             if (!tcp.Connected)
                 return;
-            TasBird.Link.Util.WriteString(stream, "LoadReplay");
+            TasBird.Link.Util.WriteString(stream, (spawn == null) ? "LoadReplay" : "LoadReplayFrom");
             TasBird.Link.Util.WriteString(stream, levelName);
             TasBird.Link.Util.WriteString(stream, replayBuffer);
             TasBird.Link.Util.WriteInt(stream, breakpoint);
+            if (spawn != null)
+            {
+                TasBird.Link.Util.WriteFloat(stream, spawn[0]);
+                TasBird.Link.Util.WriteFloat(stream, spawn[1]);
+            }
         }
     }
 }
