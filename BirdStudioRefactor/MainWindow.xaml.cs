@@ -83,18 +83,15 @@ namespace BirdStudioRefactor
 
         private void OnReplaySaved(string levelName, string replayBuffer, int breakpoint)
         {
-            Util.handleCrash(() =>
+            Replay replay;
+            try
             {
-                Replay replay;
-                try
-                {
-                    replay = new Replay(replayBuffer, false);
-                }
-                catch (FormatException e) { return; }
-                List<Press> presses = replay.toPresses();
-                TASInputs newInputs = new TASInputs(presses);
-                editor.onReplaySaved(levelName, newInputs);
-            });
+                replay = new Replay(replayBuffer, false);
+            }
+            catch (FormatException e) { return; }
+            List<Press> presses = replay.toPresses();
+            TASInputs newInputs = new TASInputs(presses);
+            editor.onReplaySaved(levelName, newInputs);
         }
 
         private void NewCommand_Execute(object sender, RoutedEventArgs e)
@@ -283,7 +280,6 @@ namespace BirdStudioRefactor
         {
             foreach (KeyValuePair<string, SolidColorBrush> kvp in ColorScheme.instance().resources)
                 Resources[kvp.Key] = kvp.Value;
-            // TODO Syntax highlighting
         }
 
         private void Menu_LightMode(object sender, RoutedEventArgs e)

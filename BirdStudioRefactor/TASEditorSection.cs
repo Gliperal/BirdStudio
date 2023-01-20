@@ -246,24 +246,24 @@ namespace BirdStudioRefactor
             editor.bringActiveLineToFocus();
         }
 
-        public string[] splitOutBranch()
+        public NewBranchInfo splitOutBranch()
         {
             if (SelectionLength == 0)
             {
                 LinesInfo info = new LinesInfo(text, SelectionStart, SelectionLength);
-                return new string[]
+                return new NewBranchInfo
                 {
-                    (info.start > 0) ? text.Substring(0, info.start - 1) : null,
-                    text.Substring(info.start),
-                    null
+                    preText = (info.start > 0) ? text.Substring(0, info.start - 1) : null,
+                    splitText = text.Substring(info.start),
+                    bottomless = true,
                 };
             }
             else
-                return new string[]
+                return new NewBranchInfo
                 {
-                    text.Substring(0, SelectionStart),
-                    text.Substring(SelectionStart, SelectionLength),
-                    text.Substring(SelectionStart + SelectionLength),
+                    preText = text.Substring(0, SelectionStart),
+                    splitText = text.Substring(SelectionStart, SelectionLength),
+                    postText = text.Substring(SelectionStart + SelectionLength),
                 };
         }
 
@@ -287,7 +287,7 @@ namespace BirdStudioRefactor
             });
         }
 
-        public bool updateInputs(List<TASInputLine> newInputs, bool force, Branch target, int nodeIndex)
+        public bool updateInputs(List<TASInputLine> newInputs, bool force, ref NewBranchInfo newBranchInfo)
         {
             List<TASInputLine> inputLines = getInputsData().getInputLines();
             for (int i = 0; i < inputLines.Count && newInputs.Count > 0; i++)
@@ -299,22 +299,16 @@ namespace BirdStudioRefactor
                 else
                 {
                     int split = Util.nthIndexOf(text, '\n', i);
-                    string preText = (split > 0) ? text.Substring(0, split) : null;
-                    string oldBranchText = text.Substring(split + 1);
                     string newBranchText = "";
                     foreach (TASInputLine inputLine in newInputs)
                         newBranchText += inputLine.toText() + '\n';
-                    List<Branch> branches = new List<Branch>();
-                    branches.Add(Branch.fromText("recorded inputs", newBranchText, editor));
-                    branches.Add(Branch.fromText("main branch", oldBranchText, editor));
-                    editor.requestEdit(target, new NewBranchGroupEdit
+                    newBranchInfo = new NewBranchInfo
                     {
-                        nodeIndex = nodeIndex,
-                        initialText = text,
-                        preText = preText,
-                        branchGroupCopy = new BranchGroup(editor, branches),
-                        postText = "",
-                    });
+                        preText = (split > 0) ? text.Substring(0, split) : null,
+                        splitText = text.Substring(split + 1),
+                        bottomless = true,
+                        newBranchText = newBranchText,
+                    };
                     return true;
                 }
             }

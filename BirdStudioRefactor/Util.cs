@@ -19,6 +19,15 @@ namespace BirdStudioRefactor
         public TASEditorSection block;
     }
 
+    public class NewBranchInfo
+    {
+        public string preText;
+        public string splitText;
+        public string postText;
+        public bool bottomless;
+        public string newBranchText = "";
+    }
+
     public static class Util
     {
         public static string removeSingleNewline(string text)
@@ -146,6 +155,14 @@ namespace BirdStudioRefactor
                     return res;
             }
             return defaultValue;
+        }
+
+        public static List<IBranchSection> getRangeClone(List<IBranchSection> list, int start, int count)
+        {
+            List<IBranchSection> res = new List<IBranchSection>();
+            for (int i = start; i < start + count; i++)
+                res.Add(list[i].clone());
+            return res;
         }
     }
 }

@@ -16,13 +16,11 @@ namespace BirdStudioRefactor
         public int cursorPosFinal;
     }
 
-    class NewBranchGroupEdit : EditHistoryItem
+    class RestructureBranchEdit : EditHistoryItem
     {
         public int nodeIndex;
-        public string initialText;
-        public string preText;
-        public BranchGroup branchGroupCopy;
-        public string postText;
+        public IBranchSection[] removedSections;
+        public IBranchSection[] insertedSections;
     }
 
     class AddBranchEdit : EditHistoryItem
@@ -48,14 +46,5 @@ namespace BirdStudioRefactor
         public int branchIndex;
         public int activeBranchFinal;
         public Branch branchCopy;
-    }
-
-    class DeleteBranchGroupEdit : EditHistoryItem
-    {
-        public int nodeIndex;
-        public string preText;
-        public BranchGroup branchGroupCopy;
-        public string postText;
-        public string replacementText;
     }
 }
