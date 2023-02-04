@@ -65,7 +65,9 @@ namespace BirdStudioRefactor
             panel.Children.Add(header);
             foreach (UIElement component in masterBranch.getComponents())
                 panel.Children.Add(component);
+            blocksByStartFrame = null;
             bringActiveLineToFocus();
+            showPlaybackFrame(playbackFrame);
         }
 
         public bool canUndo()
