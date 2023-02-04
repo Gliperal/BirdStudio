@@ -118,6 +118,7 @@ namespace BirdStudioRefactor
                     int endOfNumbers = Util.firstIndexThatIsNot(text, " \t0123456789", linesInfo.start);
                     if (!Char.IsDigit(insert[0]) || pos > endOfNumbers)
                         pos = endOfNumbers;
+                    linesInfo = new LinesInfo(text, pos, deleteLength);
                 }
             }
             string line = linesInfo.preText + insert + linesInfo.postText;
