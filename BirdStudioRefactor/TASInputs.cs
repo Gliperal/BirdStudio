@@ -59,9 +59,16 @@ namespace BirdStudioRefactor
             List<Press> presses = new List<Press>();
             HashSet<char> state = new HashSet<char>();
             int frame = 0;
-            foreach (TASInputLine inputLine in inputLines)
+            for (int i = 0; i < inputLines.Count; i++)
             {
+                TASInputLine inputLine = inputLines[i];
                 if (inputLine == null)
+                    continue;
+                // ignore 0,... lines that aren't at the end
+                if (
+                    inputLine.frames == 0 &&
+                    inputLines.FindIndex(i + 1, inputLines.Count - i - 1, x => x != null) != -1
+                )
                     continue;
                 foreach (char button in BUTTONS)
                 {
