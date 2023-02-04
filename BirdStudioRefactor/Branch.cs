@@ -44,6 +44,11 @@ namespace BirdStudioRefactor
             return new BranchGroup(editor, newBranches, activeBranch);
         }
 
+        public Branch getActiveBranch()
+        {
+            return branches[activeBranch];
+        }
+
         public void updateHeader()
         {
             headerComponent.setBranch($"({activeBranch + 1}/{branches.Count})", branches[activeBranch].getName());
@@ -557,25 +562,37 @@ namespace BirdStudioRefactor
             return startFrame;
         }
 
-        public int getStartFrameOfBlock(TASEditorSection block)
+        /// <summary>
+        /// If branch contains block, then count is incremented by the number
+        /// of frames before that block, and true is returned. If branch does
+        /// not contain block, then count is incremented by the total number
+        /// of frames in the block, and false is returned.
+        /// </summary>
+        private bool getStartFrameOfBlock(TASEditorSection block, ref int count)
         {
-            int count = 0;
             foreach (IBranchSection node in nodes)
             {
                 if (node == block)
-                    return count;
+                    return true;
                 else if (node is TASEditorSection)
                     count += ((TASEditorSection)node).getInputsData().totalFrames();
                 else if (node is BranchGroup)
                 {
-                    foreach (Branch branch in ((BranchGroup)node).branches)
-                    {
-                        int countWithinBranch = branch.getStartFrameOfBlock(block);
-                        if (countWithinBranch != -1)
-                            return count + countWithinBranch;
-                    }
+                    Branch activeBranch = ((BranchGroup)node).getActiveBranch();
+                    bool found = activeBranch.getStartFrameOfBlock(block, ref count);
+                    if (found)
+                        return true;
                 }
             }
+            return false;
+        }
+
+        public int getStartFrameOfBlock(TASEditorSection block)
+        {
+            int startFrame = 0;
+            bool found = getStartFrameOfBlock(block, ref startFrame);
+            if (found)
+                return startFrame;
             return -1;
         }
 
