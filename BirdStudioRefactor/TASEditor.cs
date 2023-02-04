@@ -42,7 +42,7 @@ namespace BirdStudioRefactor
             editHistoryLocation++;
             fileChanged();
             blocksByStartFrame = null;
-            if (!tasEditedSinceLastWatch)
+            if (!tasEditedSinceLastWatch && edit is ModifyTextEdit)
             {
                 header.incrementRerecords();
                 tasEditedSinceLastWatch = true;
