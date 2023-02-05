@@ -616,6 +616,9 @@ namespace BirdStudioRefactor
                     };
                 }
                 y += component.RenderSize.Height;
+                // Separator thinks that it has height 0 for some reason...
+                if (component is Separator)
+                    y += 5;
             }
             return null;
         }
