@@ -239,11 +239,17 @@ namespace BirdStudioRefactor
             e.Handled = true;
         }
 
+        TextViewPosition oldCaretPos;
+
         public void Editor_CaretPositionChanged(object sender, EventArgs e)
         {
+            // workaround to WPF sending caret position changes when clicking on a different branch
+            bool hasNotMoved = oldCaretPos == TextArea.Caret.Position;
+            oldCaretPos = TextArea.Caret.Position;
+            if (hasNotMoved)
+                return;
             if (ignoreCaretChanges)
                 return;
-            // TODO Causes weird things to happen when clicking on a different branch while the currently selected line is out of focus
             editor.bringActiveLineToFocus();
         }
 
