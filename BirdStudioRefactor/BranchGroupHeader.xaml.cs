@@ -24,7 +24,6 @@ namespace BirdStudioRefactor
 
         public void beginRename()
         {
-            // TODO Grab user cursor, scroll to rename box if out of view (editor.bringComponentIntoFocus(this))
             nameDisplay.Visibility = Visibility.Collapsed;
             nameEdit.Visibility = Visibility.Visible;
             nameEdit.Text = name;

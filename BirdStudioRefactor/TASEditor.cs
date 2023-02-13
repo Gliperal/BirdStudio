@@ -32,6 +32,33 @@ namespace BirdStudioRefactor
                 open(initialFile);
         }
 
+        private void mergeEdits()
+        {
+            if (editHistory.Count < 2)
+                return;
+            int end = editHistory.Count - 1;
+            if (!(editHistory[end] is ModifyTextEdit && editHistory[end - 1] is ModifyTextEdit))
+                return;
+            ModifyTextEdit before = (ModifyTextEdit)editHistory[end - 1];
+            ModifyTextEdit after = (ModifyTextEdit)editHistory[end];
+            if (after.pos == before.pos + before.textInserted.Length)
+            {
+                before.textRemoved += after.textRemoved;
+                before.textInserted += after.textInserted;
+                before.cursorPosFinal = after.cursorPosFinal;
+                editHistory.RemoveAt(end);
+                editHistoryLocation--;
+            }
+            else if (before.pos == after.pos + after.textRemoved.Length)
+            {
+                after.textRemoved += before.textRemoved;
+                after.textInserted += before.textInserted;
+                after.cursorPosInitial = before.cursorPosInitial;
+                editHistory.RemoveAt(end - 1);
+                editHistoryLocation--;
+            }
+        }
+
         public void editPerformed(IEditable target, EditHistoryItem edit)
         {
             List<int> id = masterBranch.findEditTargetID(target);
@@ -40,6 +67,7 @@ namespace BirdStudioRefactor
                 editHistory.RemoveRange(editHistoryLocation, editHistory.Count - editHistoryLocation);
             editHistory.Add(edit);
             editHistoryLocation++;
+            mergeEdits();
             fileChanged();
             blocksByStartFrame = null;
             if (!tasEditedSinceLastWatch && edit is ModifyTextEdit)

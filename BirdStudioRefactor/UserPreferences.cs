@@ -45,6 +45,7 @@ namespace BirdStudioRefactor
             }
             catch (Exception e)
             {
+                Util.logAndReportException(e);
                 keyBindings = new Dictionary<string, Keybind>();
             }
             loaded = true;
@@ -64,7 +65,10 @@ namespace BirdStudioRefactor
                 string json = JsonConvert.SerializeObject(data);
                 File.WriteAllText(PREFERENCE_FILE, json);
             }
-            catch (Exception e) { }
+            catch (Exception e)
+            {
+                Util.logAndReportException(e);
+            }
         }
 
         public static string get(string key, string fallback)

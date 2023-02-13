@@ -51,7 +51,7 @@ namespace BirdStudioRefactor
                 while (true)
                 {
                     if (!TcpManager.isConnected())
-                        TcpManager.connect(); // TODO need to update on main thread probably ??
+                        TcpManager.connect();
                     Message message = TcpManager.listenForMessage();
                     if (message == null)
                         continue;
@@ -74,7 +74,7 @@ namespace BirdStudioRefactor
                             // TODO
                             break;
                         default:
-                            // TODO Log the unknown message.type
+                            Util.logAndReportException(new Exception("Unknown message type: \"" + message.type + "\""));
                             break;
                     }
                 }
