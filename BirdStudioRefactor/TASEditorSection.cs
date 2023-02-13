@@ -77,7 +77,7 @@ namespace BirdStudioRefactor
             // TextLocation deleteEnd = component.Document.GetLocation(pos + deleteLength);
             text = text.Substring(0, edit.pos) + edit.textInserted + text.Substring(edit.pos + edit.textRemoved.Length);
             Text = text;
-            CaretOffset = edit.cursorPosFinal;
+            Select(edit.cursorPosFinal, 0);
             inputsData = null;
             ignoreCaretChanges = false;
         }
