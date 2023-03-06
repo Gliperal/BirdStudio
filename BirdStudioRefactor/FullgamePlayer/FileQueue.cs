@@ -79,5 +79,21 @@ namespace BirdStudioRefactor
             if (selected is TreeViewBranch)
                 ((TreeViewBranch)selected).toggleForced();
         }
+
+        public void play()
+        {
+            foreach (TreeViewBranch child in children)
+            {
+                string text = child.branch.getText();
+                TASInputs tas = new TASInputs(text);
+                List<Press> presses = tas.toPresses();
+                Replay replay = new Replay(presses);
+                string replayBuffer = replay.writeString();
+                if (child == children.First())
+                    TcpManager.sendLoadReplayCommand(child.stage, replayBuffer, -1, null);
+                else
+                    TcpManager.sendQueueReplayCommand(child.stage, replayBuffer);
+            }
+        }
     }
 }

@@ -14,6 +14,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <local:FileQueue x:Name="fileQueue" Grid.Row="0" />
         <Button Click="Open_Click" Grid.Row="1">Open TAS</Button>
@@ -21,5 +22,6 @@
         <Button Click="AddFile_Click" Grid.Row="3">Add File</Button>
         <Button Click="RemoveFile_Click" Grid.Row="4">Remove File(s)</Button>
         <Button Click="Force_Click" Grid.Row="5">Force/Unforce</Button>
+        <Button Click="Play_Click" Grid.Row="6">Play TAS</Button>
     </Grid>
 </Window>

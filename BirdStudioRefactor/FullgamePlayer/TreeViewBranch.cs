@@ -4,11 +4,14 @@ using System.IO;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Xml;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace BirdStudioRefactor
 {
     public class TreeViewBranch : TreeViewItem
     {
+        public string stage;
+
         // TODO private
         public TreeViewBranchGroup parent;
         public string name;
@@ -51,8 +54,10 @@ namespace BirdStudioRefactor
                 xml.LoadXml(tas);
                 if (xml.DocumentElement.Name != "tas")
                     throw new Exception();
+                TASEditorHeader header = new TASEditorHeader(xml.DocumentElement.Attributes);
                 Branch branch = Branch.fromXml(xml.DocumentElement, null);
                 TreeViewBranch x = new TreeViewBranch(null, filename, filename, branch);
+                x.stage = header.stage();
                 x.setActive(true);
                 return x;
             }

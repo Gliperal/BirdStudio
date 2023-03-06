@@ -67,5 +67,10 @@ namespace BirdStudioRefactor
         {
             fileQueue.force();
         }
+
+        private void Play_Click(object sender, RoutedEventArgs e)
+        {
+            fileQueue.play();
+        }
     }
 }
