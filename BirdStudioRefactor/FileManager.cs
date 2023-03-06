@@ -19,21 +19,6 @@ namespace BirdStudioRefactor
             this.window = window;
         }
 
-        private string filePathToFileName(string path)
-        {
-            return path.Split('\\').Last().Split('/').Last();
-        }
-
-        private string filePathToNameOnly(string path)
-        {
-            string name = filePathToFileName(path);
-            int i = name.LastIndexOf('.');
-            if (i == -1)
-                return name;
-            else
-                return name.Substring(0, i);
-        }
-
         protected abstract void _importFromFile(string contents);
         protected abstract string _exportToFile();
 
@@ -42,7 +27,7 @@ namespace BirdStudioRefactor
             if (filePath == null)
                 window.Title = "Bird Studio";
             else
-                window.Title = (unsavedChanges ? "*" : "") + filePathToFileName(filePath) + " - Bird Studio";
+                window.Title = (unsavedChanges ? "*" : "") + Util.filePathToFileName(filePath) + " - Bird Studio";
         }
 
         private void _setTasFile(string path)
@@ -64,7 +49,7 @@ namespace BirdStudioRefactor
                 return true;
             string message = "Do you want to save changes?";
             if (filePath != null)
-                message = "Do you want to save changes to " + filePathToFileName(filePath) + "?";
+                message = "Do you want to save changes to " + Util.filePathToFileName(filePath) + "?";
             MessageBoxResult result = System.Windows.MessageBox.Show(
                 message,
                 "caption",

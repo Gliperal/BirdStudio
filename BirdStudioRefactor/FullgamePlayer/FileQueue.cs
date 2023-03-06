@@ -1,42 +1,76 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows.Controls;
+using System.Windows.Forms;
 
 namespace BirdStudioRefactor
 {
-    public class FileQueue : TreeView
+    // TODO Would be nice to generalize FileManager so this can use it too
+    public class FileQueue : System.Windows.Controls.TreeView
     {
+        public const string TAS_FILES_LOCATION = "C:/Users/Gliperal/Gliperal/Games/The King's Bird/executable versions/TASbot/tas-files/"; // TODO
+
         List<TreeViewBranch> children = new List<TreeViewBranch>();
 
         public void open()
         {
-            // TODO
-            // List<string> lines = text.Split('\n').ToList();
-            // lines = lines.FindAll(line => line.Trim() != "");
+            using (OpenFileDialog openFileDialogue = new OpenFileDialog())
+            {
+                openFileDialogue.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
+                openFileDialogue.RestoreDirectory = true;
+                if (openFileDialogue.ShowDialog() != DialogResult.OK)
+                    return;
+                string filepath = openFileDialogue.FileName;
+                List<string> lines = File.ReadAllLines(filepath).ToList();
+                lines = lines.FindAll(line => line.Trim() != "");
+                children.Clear();
+                while (Items.Count > 0)
+                    Items.RemoveAt(0);
+                children.Add(TreeViewBranch.from(lines, TAS_FILES_LOCATION));
+                foreach (TreeViewBranch child in children)
+                    AddChild(child);
+            }
+        }
+
+        public void save()
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "Text file (*.txt)|*.txt";
+            saveFileDialog.ShowDialog();
+            if (saveFileDialog.FileName == "")
+                return;
+            string filename = saveFileDialog.FileName;
+            string text = "";
+            foreach (TreeViewBranch child in children)
+                text += child.toText();
+            File.WriteAllText(filename, text);
         }
 
         public void addFile()
         {
-            /*
-            this.AddChild(new TreeViewBranch("Home.tas"));
-            this.AddChild(new TreeViewBranch("KeystoneIsles.tas"));
-            this.AddChild(new TreeViewBranch("nonexistantfile.tas"));
-            this.AddChild(new TreeViewBranch("Briar.tas"));
-            */
-            children.Add(TreeViewBranch.from("Home.tas"));
-            children.Add(TreeViewBranch.from("KeystoneIsles.tas"));
-            children.Add(TreeViewBranch.from("nonexistantfile.tas"));
-            children.Add(TreeViewBranch.from("Briar.tas"));
-            foreach (TreeViewBranch child in children)
+            using (OpenFileDialog openFileDialogue = new OpenFileDialog())
+            {
+                openFileDialogue.Filter = "TAS files (*.tas)|*.tas|All files (*.*)|*.*";
+                openFileDialogue.RestoreDirectory = true;
+                if (openFileDialogue.ShowDialog() != DialogResult.OK)
+                    return;
+                string filepath = openFileDialogue.FileName;
+                TreeViewBranch child = TreeViewBranch.from(filepath);
+                children.Add(child);
                 AddChild(child);
+            }
         }
 
         public void removeFile()
         {
-            string text = "";
             foreach (TreeViewBranch child in children)
-                text += child.toText();
-            File.WriteAllText(TreeViewBranch.TAS_FILES_LOCATION + "fullgame.txt", text);
+                if (child == this.SelectedItem)
+                {
+                    children.Remove(child);
+                    Items.Remove(child);
+                    break;
+                }
         }
 
         public void force()
@@ -47,12 +81,3 @@ namespace BirdStudioRefactor
         }
     }
 }
-
-/*
-file01.tas
- 2. unnamed branch
-file02.tas
- default
-  1. this branch
-file03.tas
-*/

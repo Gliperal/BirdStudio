@@ -173,5 +173,20 @@ namespace BirdStudioRefactor
                     return i;
             return i;
         }
+
+        public static string filePathToFileName(string path)
+        {
+            return path.Split('\\').Last().Split('/').Last();
+        }
+
+        public static string filePathToNameOnly(string path)
+        {
+            string name = filePathToFileName(path);
+            int i = name.LastIndexOf('.');
+            if (i == -1)
+                return name;
+            else
+                return name.Substring(0, i);
+        }
     }
 }

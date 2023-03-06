@@ -9,8 +9,6 @@ namespace BirdStudioRefactor
 {
     public class TreeViewBranch : TreeViewItem
     {
-        public const string TAS_FILES_LOCATION = "C:/Users/Gliperal/Gliperal/Games/The King's Bird/executable versions/TASbot/tas-files/"; // TODO
-
         // TODO private
         public TreeViewBranchGroup parent;
         public string name;
@@ -40,11 +38,12 @@ namespace BirdStudioRefactor
             //_updateColors();
         }
 
-        public static TreeViewBranch from(string filename)
+        public static TreeViewBranch from(string filepath)
         {
+            string filename = Util.filePathToFileName(filepath);
             try
             {
-                string tas = File.ReadAllText(TAS_FILES_LOCATION + filename);
+                string tas = File.ReadAllText(filepath);
                 tas = tas.Replace("\r\n", "\n");
                 if (!tas.Trim().StartsWith('<'))
                     tas = Util.convertOldFormatToNew(tas);
@@ -67,9 +66,10 @@ namespace BirdStudioRefactor
             }
         }
 
-        public static TreeViewBranch from(List<string> lines)
+        public static TreeViewBranch from(List<string> lines, string rootDirectory)
         {
-            TreeViewBranch x = from(lines[0].Trim());
+            string filepath = rootDirectory + lines[0].Trim();
+            TreeViewBranch x = from(filepath);
             lines.RemoveAt(0);
             x._parse(lines, 0);
             return x;
@@ -142,14 +142,6 @@ namespace BirdStudioRefactor
             {
                 this.Foreground = Brushes.Plum;
             }
-            /*
-            foreach (TreeViewBranchGroup group in groups)
-            {
-                int activeBranch = group.branchGroup.activeBranch;
-                for (int i = 0; i < group.branches.Count; i++)
-                    group.branches[i].update(forced && i == activeBranch);
-            }
-            */
         }
 
         private bool nameIsUnique(string name)
@@ -175,7 +167,7 @@ namespace BirdStudioRefactor
                 TreeViewBranch forcedBranch = group.branches[branchIndex];
                 string name = forcedBranch.branch.getName();
                 if (!nameIsUnique(name))
-                    name = String.Format("{}-{}. {}", groupIndex, branchIndex, name);
+                    name = String.Format("{0}-{1}. {2}", groupIndex + 1, branchIndex + 1, name);
                 text += indent + name + "\n";
                 text += group.branches[group.forcedBranch]._toText(indent);
             }
@@ -189,8 +181,6 @@ namespace BirdStudioRefactor
 
         public void setActive(bool active)
         {
-            // TODO setActive(false) should cascade down: all the children become unactive as well
-            // setActive(true) should also cascade down: the currently active child of every branchgroup becomes active
             if (this.active == active)
                 return;
             this.active = active;

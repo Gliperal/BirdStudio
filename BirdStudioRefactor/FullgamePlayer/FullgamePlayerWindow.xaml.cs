@@ -6,10 +6,6 @@ namespace BirdStudioRefactor
 {
     public partial class FullgamePlayerWindow : Window
     {
-        private TASEditor editor;
-        private bool lCtrlDown;
-        private bool rCtrlDown;
-
         public FullgamePlayerWindow()
         {
             InitializeComponent();
@@ -45,6 +41,16 @@ namespace BirdStudioRefactor
                     }
                 }
             });
+        }
+
+        private void Open_Click(object sender, RoutedEventArgs e)
+        {
+            fileQueue.open();
+        }
+
+        private void Save_Click(object sender, RoutedEventArgs e)
+        {
+            fileQueue.save();
         }
 
         private void AddFile_Click(object sender, RoutedEventArgs e)
