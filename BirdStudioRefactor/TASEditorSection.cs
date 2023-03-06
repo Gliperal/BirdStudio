@@ -243,6 +243,9 @@ namespace BirdStudioRefactor
 
         public void Editor_CaretPositionChanged(object sender, EventArgs e)
         {
+            // lazy way of making Branch still function properly without an editor
+            if (editor == null)
+                return;
             // workaround to WPF sending caret position changes when clicking on a different branch
             bool hasNotMoved = oldCaretPos == TextArea.Caret.Position;
             oldCaretPos = TextArea.Caret.Position;

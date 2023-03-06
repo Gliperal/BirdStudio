@@ -30,4 +30,10 @@
     <None Include="C:\Users\Gliperal\Desktop\code\BirdStudioRefactor\BirdStudioRefactor\.editorconfig" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Page Update="FullgamePlayer\FullgamePlayerWindow.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+
 </Project>

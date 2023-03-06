@@ -171,7 +171,7 @@ namespace BirdStudioRefactor
     {
         private TASEditor editor;
         private string name;
-        List<IBranchSection> nodes = new List<IBranchSection>();
+        public List<IBranchSection> nodes = new List<IBranchSection>();
 
         private Branch() {}
 

@@ -164,5 +164,14 @@ namespace BirdStudioRefactor
                 res.Add(list[i].clone());
             return res;
         }
+
+        public static int countLeadingWhitespace(string str)
+        {
+            int i;
+            for (i = 0; i < str.Length; i++)
+                if (!Char.IsWhiteSpace(str[i]))
+                    return i;
+            return i;
+        }
     }
 }
