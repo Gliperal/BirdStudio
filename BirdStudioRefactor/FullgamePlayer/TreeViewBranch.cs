@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Media;
 using System.Xml;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace BirdStudioRefactor
 {
@@ -80,10 +81,36 @@ namespace BirdStudioRefactor
             return x;
         }
 
+        private TreeViewBranch _findChildBranch(string id)
+        {
+            TreeViewBranch child;
+            while (true)
+            {
+                Regex r = new Regex(@"^\s*(\d+)-(\d+)\.(.*)$");
+                Match m = r.Match(id);
+                if (!m.Success)
+                    break;
+                int groupIndex;
+                int branchIndex;
+                if (!Int32.TryParse(m.Groups[1].Value, out groupIndex))
+                    break;
+                if (!Int32.TryParse(m.Groups[2].Value, out branchIndex))
+                    break;
+                string branchName = m.Groups[3].Value;
+                child = groups[groupIndex - 1].branches[branchIndex - 1];
+                if (child.branch.getName().Trim() == branchName.Trim())
+                    return child;
+                throw new FormatException("Expected branch name doesn't match branch at that location: \"" + id + "\"");
+            }
+            child = _getUniqueBranchWithName(id);
+            if (child == null)
+                throw new FormatException("Branch name \"" + id + "\" not found or not unique.");
+            return child;
+        }
+
         // starting from the current line, deal with all the upcoming lines that are deeper than indentLevel
         private void _parse(List<string> lines, int indentLevel)
         {
-            /*
             if (lines.Count == 0)
                 return;
             int subIndentLevel = Util.countLeadingWhitespace(lines[0]);
@@ -95,33 +122,25 @@ namespace BirdStudioRefactor
                 if (indent == subIndentLevel)
                 {
                     // TODO catch errors with incorrect formatting
-                    string line = lines[0];
+                    string branchID = lines[0].Trim();
                     lines.RemoveAt(0);
-                    line = line.Trim();
-                        // line = "   3-1. main branch"
-                        // groupIndex-branchIndex. branchName;
-                        // ^\s*(\d+)-(\d+)\.(.*)$
-                        // https://learn.microsoft.com/en-us/dotnet/api/system.text.regularexpressions.match.groups?view=net-7.0
-                        // https://stackoverflow.com/questions/6375873/regular-expression-groups-in-c-sharp
-                        TreeViewBranch child = groups[groupIndex].branches[branchIndex];
-                        if (child.branch.getName().Trim() == branchName.Trim())
-                        {
-                            child.Checked = true;
-                            child._parse(lines, subIndentLevel);
-                        }
-                        else
-                        {
-                            _addChild(groupIndex, new TreeViewBranch
-                            {
-                                Header = branchName.Trim(),
-                                Foreground = Brushes.Red,
-                            });
-                        }
+                    try
+                    {
+                        TreeViewBranch child = _findChildBranch(branchID);
+                        child.parent.force(child, true);
+                        child._parse(lines, subIndentLevel);
+                    }
+                    catch (FormatException e)
+                    {
+                        MessageBox.Show("Ignoring error while parsing file: " + e.Message);
+                    }
                 }
-                if (indent < subIndentLevel)
+                else if (indent < subIndentLevel)
                     return;
+                else if (indent > indentLevel)
+                    // Previous subbranch must have failed, so ignore its children
+                    continue;
             }
-            */
         }
 
         // TODO private
@@ -149,14 +168,19 @@ namespace BirdStudioRefactor
             }
         }
 
-        private bool nameIsUnique(string name)
+        private TreeViewBranch _getUniqueBranchWithName(string name)
         {
-            int count = 0;
+            TreeViewBranch result = null;
             foreach (TreeViewBranchGroup group in groups)
                 foreach (TreeViewBranch x in group.branches)
                     if (x.name == name)
-                        count++;
-            return count == 1;
+                    {
+                        if (result == null)
+                            result = x;
+                        else
+                            return null;
+                    }
+            return result;
         }
 
         private string _toText(string indent)
@@ -171,7 +195,7 @@ namespace BirdStudioRefactor
                     continue;
                 TreeViewBranch forcedBranch = group.branches[branchIndex];
                 string name = forcedBranch.branch.getName();
-                if (!nameIsUnique(name))
+                if (_getUniqueBranchWithName(name) == null)
                     name = String.Format("{0}-{1}. {2}", groupIndex + 1, branchIndex + 1, name);
                 text += indent + name + "\n";
                 text += group.branches[group.forcedBranch]._toText(indent);

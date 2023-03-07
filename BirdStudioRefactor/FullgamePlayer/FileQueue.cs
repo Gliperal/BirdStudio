@@ -27,9 +27,13 @@ namespace BirdStudioRefactor
                 children.Clear();
                 while (Items.Count > 0)
                     Items.RemoveAt(0);
-                children.Add(TreeViewBranch.from(lines, TAS_FILES_LOCATION));
-                foreach (TreeViewBranch child in children)
+                while (lines.Count > 0)
+                {
+                    // TODO check for format errors
+                    TreeViewBranch child = TreeViewBranch.from(lines, TAS_FILES_LOCATION);
+                    children.Add(child);
                     AddChild(child);
+                }
             }
         }
 

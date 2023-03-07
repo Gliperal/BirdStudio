@@ -49,22 +49,18 @@ namespace BirdStudioRefactor
             int i = (target != null) ? branches.IndexOf(target) : forcedBranch;
             if ((forcedBranch == i) == on)
                 return;
-            // TODO remove oldForcedBranch; just use forcedBranch
-            int oldForcedBranch = forcedBranch;
-            if (oldForcedBranch == -1)
+            if (forcedBranch == -1)
                 branches[defaultBranch].setActive(false);
             else
             {
-                branches[oldForcedBranch].setActive(false);
-                foreach (TreeViewBranchGroup group in branches[oldForcedBranch].groups)
+                branches[forcedBranch].setActive(false);
+                foreach (TreeViewBranchGroup group in branches[forcedBranch].groups)
                     group.force(null, false);
             }
             // Update forced branch after deactivating the old branch, so that
             // updates will cascade correctly
-            // TODO remove newForcedBranch; just use forcedBranch
-            int newForcedBranch = on ? i : -1;
-            forcedBranch = newForcedBranch;
-            if (newForcedBranch == -1)
+            forcedBranch = on ? i : -1;
+            if (forcedBranch == -1)
             {
                 branchGroup.activeBranch = defaultBranch;
                 if (parent.active)
@@ -72,8 +68,8 @@ namespace BirdStudioRefactor
             }
             else
             {
-                branchGroup.activeBranch = newForcedBranch;
-                branches[newForcedBranch].setActive(true);
+                branchGroup.activeBranch = forcedBranch;
+                branches[forcedBranch].setActive(true);
                 if (parent.parent != null)
                     parent.parent.force(parent, true);
             }
