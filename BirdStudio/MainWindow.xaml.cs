@@ -360,5 +360,11 @@ namespace BirdStudio
                 editorScrollViewer.ScrollToVerticalOffset(editorScrollViewer.VerticalOffset + 64);
             e.Handled = true;
         }
+
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            if (!editor.permissionToClose())
+                e.Cancel = true;
+        }
     }
 }
