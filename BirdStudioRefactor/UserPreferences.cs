@@ -22,7 +22,7 @@ namespace BirdStudioRefactor
 
     class UserPreferences
     {
-        private const string PREFERENCE_FILE = "./preferences.txt";
+        private const string PREFERENCE_FILE = "./preferences.json";
         private static bool loaded = false;
         private static IDictionary<string, string> settings;
         private static IDictionary<string, Keybind> keyBindings;
@@ -45,7 +45,8 @@ namespace BirdStudioRefactor
             }
             catch (Exception e)
             {
-                Util.logAndReportException(e);
+                if (!(e is FileNotFoundException))
+                    Util.logAndReportException(e);
                 keyBindings = new Dictionary<string, Keybind>();
             }
             loaded = true;
@@ -97,7 +98,7 @@ namespace BirdStudioRefactor
                 Keybind binding = keyBindings[action];
                 return new KeyGesture((Key)binding.key, (ModifierKeys)binding.modifiers);
             }
-            catch (KeyNotFoundException e)
+            catch (KeyNotFoundException)
             {
                 return fallback;
             }
