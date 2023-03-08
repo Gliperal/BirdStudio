@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Windows;
+using System.Windows.Forms;
 
 namespace BirdStudioRefactor
 {
@@ -43,9 +44,34 @@ namespace BirdStudioRefactor
             });
         }
 
+        private bool _ensureFileLocation()
+        {
+            if (filesLocation.Text != "")
+                return true;
+            string gameDir = Util.getGameDirectory();
+            if (gameDir != null)
+            {
+                filesLocation.Text = gameDir.Replace('\\', '/');
+                return true;
+            }
+            using (FolderBrowserDialog folderBrowserDialogue = new FolderBrowserDialog())
+            {
+                folderBrowserDialogue.Description = "Select TAS files location.";
+                if (folderBrowserDialogue.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    filesLocation.Text = folderBrowserDialogue.SelectedPath.Replace('\\', '/');
+                    return true;
+                }
+                else
+                    return false;
+            }
+        }
+
         private void Open_Click(object sender, RoutedEventArgs e)
         {
-            fileQueue.open();
+            if (!_ensureFileLocation())
+                return;
+            fileQueue.open(filesLocation.Text + "/");
         }
 
         private void Save_Click(object sender, RoutedEventArgs e)
@@ -55,7 +81,9 @@ namespace BirdStudioRefactor
 
         private void AddFile_Click(object sender, RoutedEventArgs e)
         {
-            fileQueue.addFile();
+            if (!_ensureFileLocation())
+                return;
+            fileQueue.addFile(filesLocation.Text + "/");
         }
 
         private void RemoveFile_Click(object sender, RoutedEventArgs e)

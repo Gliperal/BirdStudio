@@ -9,14 +9,13 @@ namespace BirdStudioRefactor
     // TODO Would be nice to generalize FileManager so this can use it too
     public class FileQueue : System.Windows.Controls.TreeView
     {
-        public const string TAS_FILES_LOCATION = "C:/Users/Gliperal/Gliperal/Games/The King's Bird/executable versions/TASbot/tas-files/"; // TODO
-
         List<TreeViewBranch> children = new List<TreeViewBranch>();
 
-        public void open()
+        public void open(string tasFilesLocation)
         {
             using (OpenFileDialog openFileDialogue = new OpenFileDialog())
             {
+                openFileDialogue.InitialDirectory = tasFilesLocation;
                 openFileDialogue.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
                 openFileDialogue.RestoreDirectory = true;
                 if (openFileDialogue.ShowDialog() != DialogResult.OK)
@@ -30,7 +29,7 @@ namespace BirdStudioRefactor
                 while (lines.Count > 0)
                 {
                     // TODO check for format errors
-                    TreeViewBranch child = TreeViewBranch.from(lines, TAS_FILES_LOCATION);
+                    TreeViewBranch child = TreeViewBranch.from(lines, tasFilesLocation);
                     children.Add(child);
                     AddChild(child);
                 }
@@ -51,16 +50,18 @@ namespace BirdStudioRefactor
             File.WriteAllText(filename, text);
         }
 
-        public void addFile()
+        public void addFile(string tasFilesLocation)
         {
             using (OpenFileDialog openFileDialogue = new OpenFileDialog())
             {
+                openFileDialogue.InitialDirectory = tasFilesLocation;
                 openFileDialogue.Filter = "TAS files (*.tas)|*.tas|All files (*.*)|*.*";
                 openFileDialogue.RestoreDirectory = true;
                 if (openFileDialogue.ShowDialog() != DialogResult.OK)
                     return;
                 string filepath = openFileDialogue.FileName;
-                TreeViewBranch child = TreeViewBranch.from(filepath);
+                string relpath = Path.GetRelativePath(tasFilesLocation, filepath).Replace('\\', '/');
+                TreeViewBranch child = TreeViewBranch.from(relpath, tasFilesLocation);
                 children.Add(child);
                 AddChild(child);
             }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
@@ -79,6 +80,11 @@ namespace BirdStudioRefactor
                 if (str.Substring(i).StartsWith(substr))
                     count++;
             return count;
+        }
+
+        public static void log(string message)
+        {
+            File.AppendAllText("log.txt", message + "\n");
         }
 
         public static void logAndReportException(Exception e)
@@ -187,6 +193,21 @@ namespace BirdStudioRefactor
                 return name;
             else
                 return name.Substring(0, i);
+        }
+
+        public static string getGameDirectory()
+        {
+            try
+            {
+                Process[] processes = Process.GetProcessesByName("TheKingsBird");
+                string path = processes.First().MainModule.FileName;
+                int i = path.LastIndexOf('\\');
+                return path.Substring(0, i + 1);
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

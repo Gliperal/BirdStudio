@@ -42,12 +42,11 @@ namespace BirdStudioRefactor
             //_updateColors();
         }
 
-        public static TreeViewBranch from(string filepath)
+        public static TreeViewBranch from(string filename, string rootDirectory)
         {
-            string filename = Util.filePathToFileName(filepath);
             try
             {
-                string tas = File.ReadAllText(filepath);
+                string tas = File.ReadAllText(rootDirectory + filename);
                 tas = tas.Replace("\r\n", "\n");
                 if (!tas.Trim().StartsWith('<'))
                     tas = Util.convertOldFormatToNew(tas);
@@ -74,8 +73,7 @@ namespace BirdStudioRefactor
 
         public static TreeViewBranch from(List<string> lines, string rootDirectory)
         {
-            string filepath = rootDirectory + lines[0].Trim();
-            TreeViewBranch x = from(filepath);
+            TreeViewBranch x = from(lines[0].Trim(), rootDirectory);
             lines.RemoveAt(0);
             x._parse(lines, 0);
             return x;

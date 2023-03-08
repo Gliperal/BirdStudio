@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Forms;
 
@@ -80,16 +78,7 @@ namespace BirdStudioRefactor
 
             if (file == null)
             {
-                string gameDirectory = null;
-                try
-                {
-                    Process[] processes = Process.GetProcessesByName("TheKingsBird");
-                    string path = processes.First().MainModule.FileName;
-                    int i = path.LastIndexOf('\\');
-                    gameDirectory = path.Substring(0, i + 1);
-                }
-                catch { }
-
+                string gameDirectory = Util.getGameDirectory();
                 using (OpenFileDialog openFileDialogue = new OpenFileDialog())
                 {
                     if (gameDirectory != null && File.Exists(gameDirectory + @"Replays\"))
