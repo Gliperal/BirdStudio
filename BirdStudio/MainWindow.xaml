@@ -1,0 +1,176 @@
+﻿<Window x:Class="BirdStudio.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:BirdStudio"
+        xmlns:commands="clr-namespace:BirdStudio.Commands"
+        mc:Ignorable="d"
+        Title="birb" Height="800" Width="300"
+        Icon="Icon.ico">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="MenuStyle.xaml" />
+                <ResourceDictionary Source="ScrollBarStyle.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding Command="New" Executed="NewCommand_Execute" />
+        <CommandBinding Command="Open" Executed="OpenCommand_Execute" />
+        <CommandBinding Command="Save" Executed="SaveCommand_Execute" />
+        <CommandBinding Command="SaveAs" Executed="SaveAsCommand_Execute" />
+        <CommandBinding
+            Command="commands:CustomCommands.Undo"
+            Executed="UndoCommand_Execute"
+            CanExecute="UndoCommand_CanExecute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.Redo"
+            Executed="RedoCommand_Execute"
+            CanExecute="RedoCommand_CanExecute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.Comment"
+            Executed="CommentCommand_Execute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.AddTimestamp"
+            Executed="TimestampCommand_Execute"
+            CanExecute="TimestampCommand_CanExecute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.NewBranch"
+            Executed="NewBranch_Execute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.AddBranch"
+            Executed="AddBranch_Execute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.RemoveBranch"
+            Executed="RemoveBranch_Execute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.AcceptBranch"
+            Executed="AcceptBranch_Execute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.PrevBranch"
+            Executed="PrevBranch_Execute"
+            CanExecute="PrevBranch_CanExecute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.NextBranch"
+            Executed="NextBranch_Execute"
+            CanExecute="NextBranch_CanExecute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.RenameBranch"
+            Executed="RenameBranch_Execute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.WatchFromStart"
+            Executed="WatchFromStart_Execute"
+            CanExecute="TCP_CanExecute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.WatchToCursor"
+            Executed="WatchToCursor_Execute"
+            CanExecute="TCP_CanExecute"
+        />
+        <CommandBinding
+            x:Name="playPauseCommandBinding"
+            Command="commands:CustomCommands.PlayPause"
+            Executed="PlayPause_Execute"
+            CanExecute="TCP_CanExecute"
+        />
+        <CommandBinding
+            x:Name="stepFrameCommandBinding"
+            Command="commands:CustomCommands.StepFrame"
+            Executed="StepFrame_Execute"
+            CanExecute="TCP_CanExecute"
+        />
+    </Window.CommandBindings>
+    <Grid Background="{DynamicResource Editor.Background}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Menu Style="{DynamicResource MenuStyle}" Grid.Row="0">
+            <MenuItem Style="{DynamicResource MenuItemStyle}" Header="_File">
+                <MenuItem Header="_New" Command="New" />
+                <MenuItem Header="_Open" Command="Open" />
+                <MenuItem Header="_Save" Command="Save" />
+                <MenuItem Header="Save _As" Command="SaveAs" />
+            </MenuItem>
+            <MenuItem Style="{DynamicResource MenuItemStyle}" Header="_Edit">
+                <MenuItem Header="_Undo" Command="commands:CustomCommands.Undo" />
+                <MenuItem Header="_Redo" Command="commands:CustomCommands.Redo" />
+                <Separator/>
+                <MenuItem Header="_Comment Line(s)" Command="commands:CustomCommands.Comment" />
+                <MenuItem Header="Insert _Timestamp" Command="commands:CustomCommands.AddTimestamp" />
+            </MenuItem>
+            <MenuItem Style="{DynamicResource MenuItemStyle}" Header="B_ranch">
+                <MenuItem Header="_New Branch at Cursor" Command="commands:CustomCommands.NewBranch" />
+                <MenuItem Header="_Add Branch" Command="commands:CustomCommands.AddBranch" />
+                <MenuItem Header="_Remove Branch" Command="commands:CustomCommands.RemoveBranch" />
+                <MenuItem Header="Accept Branch" Command="commands:CustomCommands.AcceptBranch" />
+                <MenuItem Header="Previous Branch" Command="commands:CustomCommands.PrevBranch" />
+                <MenuItem Header="Next Branch" Command="commands:CustomCommands.NextBranch" />
+                <MenuItem Header="Rename Branch" Command="commands:CustomCommands.RenameBranch" />
+            </MenuItem>
+            <MenuItem Style="{DynamicResource MenuItemStyle}" Header="_Bird">
+                <MenuItem Header="Watch from _Start" Command="commands:CustomCommands.WatchFromStart" />
+                <MenuItem Header="Watch to _Cursor" Command="commands:CustomCommands.WatchToCursor" />
+                <MenuItem Header="_Play / Pause" Command="commands:CustomCommands.PlayPause" />
+                <MenuItem Header="_Frame Advance" Command="commands:CustomCommands.StepFrame" />
+            </MenuItem>
+            <MenuItem Style="{DynamicResource MenuItemStyle}" Header="_Preferences">
+                <MenuItem Name="darkModeMenuItem" Header="_Dark Mode" IsCheckable="True" Checked="Menu_DarkMode" Unchecked="Menu_LightMode" />
+                <MenuItem Header="_Show/Hide Help" Click="Menu_ToggleHelp" />
+                <MenuItem Name="autosaveMenuItem" Header="_Autosave on Watch" IsCheckable="True" Checked="Menu_AutosaveOn" Unchecked="Menu_AutosaveOff" />
+            </MenuItem>
+        </Menu>
+        <ScrollViewer x:Name="editorScrollViewer" Grid.Row="1">
+            <StackPanel x:Name="editorBase" FocusManager.IsFocusScope="True" />
+        </ScrollViewer>
+        <TextBlock Style="{DynamicResource TextBlockStyle}"
+            Name="helpBlock"
+            Grid.Row="2"
+            Padding="5px"
+            Visibility="Collapsed"
+            TextWrapping="WrapWithOverflow"
+        >
+            <Run FontWeight="Bold" Text="Letter Meanings"/>
+            <LineBreak/>
+            <Run Text="[R] Right [L] Left [U] Up [D] Down"/>
+            <LineBreak/>
+            <Run Text="[J] Jump [X] Dash [G] Glide [C] Interact"/>
+            <LineBreak/>
+            <Run Text="[Q] Reset [M] Dash Axis 1 [N] Dash Axis 2"/>
+            <LineBreak/>
+            <LineBreak/>
+            <Run FontWeight="Bold" Text="Commands"/>
+            <LineBreak/>
+            <Run Text=">stage: load the specified stage (necessary for playback)"/>
+            <LineBreak/>
+            <Run Text=">rerecords: roughly tracks how many times the tas has been modified"/>
+            <LineBreak/>
+            <Run Text="#: begin a comment"/>
+            <LineBreak/>
+            <LineBreak/>
+            <Run FontWeight="Bold" Text="Useful Shortcuts"/>
+            <LineBreak/>
+            <Run Text="Ctrl+W: Play TAS from the beginning"/>
+            <LineBreak/>
+            <Run Text="Ctrl+Q: Fast forward through TAS and pause on the currently selected line"/>
+            <LineBreak/>
+            <Run Text="[ (open bracket): Frame Advance"/>
+            <LineBreak/>
+            <Run Text="] (close bracket): Play / Pause"/>
+        </TextBlock>
+    </Grid>
+</Window>
