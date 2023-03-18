@@ -293,7 +293,7 @@ namespace BirdStudio
                 lastRedraw.Abort();
             lastRedraw = App.Current.Dispatcher.BeginInvoke((Action)delegate // need to update on main thread
             {
-                TextArea.TextView.Redraw();
+                TextArea.TextView.Redraw(DispatcherPriority.Background);
             });
         }
 
