@@ -121,12 +121,11 @@ namespace BirdStudio
             }
         }
 
-        public static void sendQueueReplayCommand(string levelName, string replayBuffer)
+        public static void sendQueueReplayCommand(string replayBuffer)
         {
             if (!tcp.Connected)
                 return;
             TasBird.Link.Util.WriteString(stream, "QueueReplay");
-            TasBird.Link.Util.WriteString(stream, levelName);
             TasBird.Link.Util.WriteString(stream, replayBuffer);
         }
     }

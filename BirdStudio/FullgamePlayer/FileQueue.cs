@@ -97,7 +97,7 @@ namespace BirdStudio
                 if (child == children.First())
                     TcpManager.sendLoadReplayCommand(child.stage, replayBuffer, -1, null);
                 else
-                    TcpManager.sendQueueReplayCommand(child.stage, replayBuffer);
+                    TcpManager.sendQueueReplayCommand(replayBuffer);
             }
         }
     }
