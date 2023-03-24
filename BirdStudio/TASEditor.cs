@@ -312,6 +312,8 @@ namespace BirdStudio
             string text = masterBranch.getText();
             TASInputs tas = new TASInputs(text);
             List<Press> presses = tas.toPresses();
+            if (presses.Count > 0 && presses[0].frame == 0)
+                MessageBox.Show("Warning: \"" + header.stage() + "\" tas may not be legal due to inputs on the first frame.");
             Replay replay = new Replay(presses);
             string replayBuffer = replay.writeString();
             float[] spawn = header.spawn();
