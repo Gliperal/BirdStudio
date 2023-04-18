@@ -5,9 +5,9 @@ using System.Windows.Forms;
 
 namespace BirdStudio
 {
-    public partial class FullgamePlayerWindow : Window
+    public partial class ComposerWindow : Window
     {
-        public FullgamePlayerWindow()
+        public ComposerWindow()
         {
             InitializeComponent();
             string[] args = Environment.GetCommandLineArgs();
@@ -98,7 +98,12 @@ namespace BirdStudio
 
         private void Play_Click(object sender, RoutedEventArgs e)
         {
-            fileQueue.play();
+            fileQueue.queue(true);
+        }
+
+        private void Queue_Click(object sender, RoutedEventArgs e)
+        {
+            fileQueue.queue(false);
         }
     }
 }

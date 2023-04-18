@@ -1,4 +1,4 @@
-﻿<Window x:Class="BirdStudio.FullgamePlayerWindow"
+﻿<Window x:Class="BirdStudio.ComposerWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -16,6 +16,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <TextBox x:Name="filesLocation" />
         <local:FileQueue x:Name="fileQueue" Grid.Row="1" />
@@ -25,5 +26,6 @@
         <Button Click="RemoveFile_Click" Grid.Row="5">Remove File(s)</Button>
         <Button Click="Force_Click" Grid.Row="6">Force/Unforce</Button>
         <Button Click="Play_Click" Grid.Row="7">Play TAS</Button>
+        <Button Click="Queue_Click" Grid.Row="8">Queue TAS</Button>
     </Grid>
 </Window>

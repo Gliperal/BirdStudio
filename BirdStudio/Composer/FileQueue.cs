@@ -85,7 +85,7 @@ namespace BirdStudio
                 ((TreeViewBranch)selected).toggleForced();
         }
 
-        public void play()
+        public void queue(bool loadFirst)
         {
             foreach (TreeViewBranch child in children)
             {
@@ -94,7 +94,7 @@ namespace BirdStudio
                 List<Press> presses = tas.toPresses();
                 Replay replay = new Replay(presses);
                 string replayBuffer = replay.writeString();
-                if (child == children.First())
+                if (loadFirst && child == children.First())
                     TcpManager.sendLoadReplayCommand(child.stage, replayBuffer, -1, null);
                 else
                     TcpManager.sendQueueReplayCommand(replayBuffer);
