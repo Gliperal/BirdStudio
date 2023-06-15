@@ -151,7 +151,13 @@ namespace BirdStudio
             int inputBlockIndex = id[id.Count - 1];
             id.RemoveAt(id.Count - 1);
             Branch target = (Branch)masterBranch.getEditable(id);
-            EditHistoryItem edit = target.newBranchGroupEdit(inputBlockIndex);
+            RestructureBranchEdit edit = target.newBranchGroupEdit(inputBlockIndex);
+            if (edit.insertedSections[0] is BranchGroup && id.Count > 0)
+            {
+                // Ctrl+B at top of branch
+                addBranch();
+                return;
+            }
             requestEdit(target, edit);
         }
 

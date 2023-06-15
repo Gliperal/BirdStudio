@@ -409,7 +409,7 @@ namespace BirdStudio
                 return branch.nodes[id[i]];
         }
 
-        internal EditHistoryItem newBranchGroupEdit(int inputBlockIndex, NewBranchInfo split = null, string newBranchName = "unnamed branch")
+        internal RestructureBranchEdit newBranchGroupEdit(int inputBlockIndex, NewBranchInfo split = null, string newBranchName = "unnamed branch")
         {
             if (split == null)
                 split = ((TASEditorSection)nodes[inputBlockIndex]).splitOutBranch();
