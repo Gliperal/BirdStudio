@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Xml;
@@ -436,8 +437,9 @@ namespace BirdStudio
             };
         }
 
-        internal EditHistoryItem deleteBranchGroupEdit(int branchGroupIndex, string replacementText = "")
+        internal EditHistoryItem deleteBranchGroupEdit(int branchGroupIndex)
         {
+            string replacementText = "";
             int deleteStart = branchGroupIndex;
             int deleteCount = 1;
             if (branchGroupIndex > 0 && nodes[branchGroupIndex - 1] is TASEditorSection)
@@ -464,7 +466,37 @@ namespace BirdStudio
 
         internal EditHistoryItem acceptBranchGroupEdit(int branchGroupIndex)
         {
-            return deleteBranchGroupEdit(branchGroupIndex, nodes[branchGroupIndex].getText());
+            List<IBranchSection> replacementNodes = ((BranchGroup)nodes[branchGroupIndex]).getActiveBranch().nodes;
+            IBranchSection[] insertedSections = Util.getRangeClone(replacementNodes, 0, replacementNodes.Count).ToArray();
+            int deleteStart = branchGroupIndex;
+            int deleteCount = 1;
+            if (
+                branchGroupIndex > 0 && nodes[branchGroupIndex - 1] is TASEditorSection &&
+                insertedSections.First() is TASEditorSection
+            )
+            {
+                deleteStart--;
+                deleteCount++;
+                string text = ((TASEditorSection)nodes[branchGroupIndex - 1]).getText();
+                text += "\n" + insertedSections.First().getText();
+                insertedSections[0] = new TASEditorSection(text, editor);
+            }
+            if (
+                branchGroupIndex < nodes.Count - 1 && nodes[branchGroupIndex + 1] is TASEditorSection &&
+                insertedSections.Last() is TASEditorSection
+            )
+            {
+                deleteCount++;
+                string text = insertedSections.Last().getText();
+                text += "\n" + ((TASEditorSection)nodes[branchGroupIndex + 1]).getText();
+                insertedSections[insertedSections.Length - 1] = new TASEditorSection(text, editor);
+            }
+            return new RestructureBranchEdit
+            {
+                nodeIndex = deleteStart,
+                removedSections = Util.getRangeClone(nodes, deleteStart, deleteCount).ToArray(),
+                insertedSections = insertedSections,
+            };
         }
 
         internal bool updateInputs(List<TASInputLine> newInputs, bool force)
