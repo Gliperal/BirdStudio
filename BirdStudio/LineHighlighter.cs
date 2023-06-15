@@ -6,6 +6,7 @@ using System.Globalization;
 using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.Rendering;
 using ICSharpCode.AvalonEdit.Document;
+using System.Linq;
 
 namespace BirdStudio
 {
@@ -15,10 +16,12 @@ namespace BirdStudio
         private int line = -1;
         private int frame;
         private bool inFocus;
+        private double pixelsPerDIP;
 
         public LineHighlighter(TextEditor editor)
         {
             this.editor = editor;
+            pixelsPerDIP = VisualTreeHelper.GetDpi(editor).PixelsPerDip;
         }
 
         public KnownLayer Layer
@@ -56,25 +59,24 @@ namespace BirdStudio
             if (line > -1 && line < editor.Document.LineCount)
             {
                 DocumentLine docLine = editor.Document.GetLineByNumber(line + 1);
-                foreach (var rect in BackgroundGeometryBuilder.GetRectsForSegment(textView, docLine))
-                {
+                var rects = BackgroundGeometryBuilder.GetRectsForSegment(textView, docLine);
+                foreach (var rect in rects)
                     drawingContext.DrawRectangle(
                         ColorScheme.instance().playbackLineBrush, null,
                         new Rect(rect.Location, new Size(textView.ActualWidth, rect.Height))
                     );
-                    // This is probably the wrong way to do this
-                    FormattedText text = new FormattedText(
-                        frame.ToString(),
-                        CultureInfo.CurrentCulture,
-                        FlowDirection.LeftToRight,
-                        new Typeface("Consolas"),
-                        19,
-                        ColorScheme.instance().playbackFrameBrush,
-                        1 //TODO dafuq is pixels per DIP
-                    );
-                    Point origin = new Point(textView.ActualWidth - text.Width - 5, rect.Top);
-                    drawingContext.DrawText(text, origin);
-                }
+                // This is probably the wrong way to do this
+                FormattedText text = new FormattedText(
+                    frame.ToString(),
+                    CultureInfo.CurrentCulture,
+                    FlowDirection.LeftToRight,
+                    new Typeface("Consolas"),
+                    19,
+                    ColorScheme.instance().playbackFrameBrush,
+                    pixelsPerDIP
+                );
+                Point origin = new Point(textView.ActualWidth - text.Width - 5, rects.First().Top);
+                drawingContext.DrawText(text, origin);
             }
         }
 

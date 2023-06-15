@@ -30,8 +30,8 @@ namespace BirdStudio
             VerticalScrollBarVisibility = ScrollBarVisibility.Disabled;
             SyntaxHighlighting = ColorScheme.instance().syntaxHighlighting;
             bgRenderer = new LineHighlighter(this);
-            SetResourceReference(Control.ForegroundProperty, "Editor.Foreground");
-            SetResourceReference(Control.BackgroundProperty, "Editor.Background");
+            SetResourceReference(ForegroundProperty, "Editor.Foreground");
+            SetResourceReference(BackgroundProperty, "Editor.Background");
             TextArea.TextView.BackgroundRenderers.Add(bgRenderer);
             TextArea.PreviewKeyDown += Editor_KeyDown;
             TextArea.TextEntering += Editor_TextEntering;
