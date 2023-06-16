@@ -18,6 +18,7 @@ namespace BirdStudio
         private string text;
         bool ignoreCaretChanges;
         private TASInputs inputsData;
+        public bool focusOnLoad = false;
 
         public TASEditorSection(string initialText, TASEditor editor)
         {
@@ -41,6 +42,7 @@ namespace BirdStudio
             LostKeyboardFocus += Editor_LostFocus;
             RequestBringIntoView += Editor_RequestBringIntoView;
             TextArea.Caret.PositionChanged += Editor_CaretPositionChanged;
+            Loaded += Editor_Loaded;
             text = initialText;
             Text = initialText;
             // Disable native undo/redo
@@ -254,6 +256,15 @@ namespace BirdStudio
             if (ignoreCaretChanges)
                 return;
             editor.bringActiveLineToFocus();
+        }
+
+        public void Editor_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (focusOnLoad)
+            {
+                TextArea.Focus();
+                focusOnLoad = false;
+            }
         }
 
         public NewBranchInfo splitOutBranch()

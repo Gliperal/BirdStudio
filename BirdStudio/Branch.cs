@@ -124,7 +124,6 @@ namespace BirdStudio
 
         public EditHistoryItem addBranchEdit()
         {
-            // TODO name?
             return new AddBranchEdit
             {
                 activeBranchInitial = activeBranch,
@@ -165,11 +164,6 @@ namespace BirdStudio
                 activeBranchFinal = (activeBranch > 0) ? activeBranch - 1 : 0,
                 branchCopy = branches[activeBranch].clone(),
             };
-        }
-
-        public void takeFocus()
-        {
-            headerComponent.Focus();
         }
     }
 
@@ -414,7 +408,7 @@ namespace BirdStudio
                 return branch.nodes[id[i]];
         }
 
-        internal RestructureBranchEdit newBranchGroupEdit(int inputBlockIndex, NewBranchInfo split = null, string newBranchName = "unnamed branch")
+        public RestructureBranchEdit newBranchGroupEdit(int inputBlockIndex, NewBranchInfo split = null, string newBranchName = "unnamed branch")
         {
             if (split == null)
                 split = ((TASEditorSection)nodes[inputBlockIndex]).splitOutBranch();
@@ -442,7 +436,7 @@ namespace BirdStudio
             };
         }
 
-        internal EditHistoryItem deleteBranchGroupEdit(int branchGroupIndex)
+        public RestructureBranchEdit deleteBranchGroupEdit(int branchGroupIndex)
         {
             string replacementText = "";
             int deleteStart = branchGroupIndex;
@@ -469,7 +463,7 @@ namespace BirdStudio
             };
         }
 
-        internal EditHistoryItem acceptBranchGroupEdit(int branchGroupIndex)
+        public RestructureBranchEdit acceptBranchGroupEdit(int branchGroupIndex)
         {
             List<IBranchSection> replacementNodes = ((BranchGroup)nodes[branchGroupIndex]).getActiveBranch().nodes;
             IBranchSection[] insertedSections = Util.getRangeClone(replacementNodes, 0, replacementNodes.Count).ToArray();

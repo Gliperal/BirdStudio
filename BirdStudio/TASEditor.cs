@@ -40,6 +40,8 @@ namespace BirdStudio
             int end = editHistory.Count - 1;
             if (!(editHistory[end] is ModifyTextEdit && editHistory[end - 1] is ModifyTextEdit))
                 return;
+            if (!editHistory[end].targetID.SequenceEqual(editHistory[end - 1].targetID))
+                return;
             ModifyTextEdit before = (ModifyTextEdit)editHistory[end - 1];
             ModifyTextEdit after = (ModifyTextEdit)editHistory[end];
             if (after.pos == before.pos + before.textInserted.Length)
@@ -64,12 +66,21 @@ namespace BirdStudio
         {
             focusID = new List<int>(focusID);
             // If focus target is branch, back out to branch group
-            if (focusID.Count % 2 == 0)
+            // TODO What to do if focus target is the master branch?
+            if (focusID.Count % 2 == 0 && focusID.Count > 0)
                 focusID.RemoveAt(focusID.Count - 1);
             IEditable focusTarget = masterBranch.getEditable(focusID);
             if (focusTarget is BranchGroup)
+                ((BranchGroup)focusTarget).headerComponent.Focus();
+            else if (focusTarget is TASEditorSection)
             {
-                ((BranchGroup)focusTarget).takeFocus();
+                TASEditorSection focusTargetS = (TASEditorSection)focusTarget;
+                if (focusTargetS.IsLoaded)
+                    focusTargetS.TextArea.Focus();
+                else
+                    // Workaround because it isn't loaded yet (unlike the
+                    // branch group for some reason..?)
+                    ((TASEditorSection)focusTarget).focusOnLoad = true;
             }
         }
 
@@ -177,7 +188,9 @@ namespace BirdStudio
             int branchInsertedAt = edit.insertedSections.ToList().FindIndex(section => section is BranchGroup);
             if (branchInsertedAt < 0)
                 throw new Exception("This should never happen.");
-            id.Add(edit.nodeIndex + branchInsertedAt);
+            id.Add(edit.nodeIndex + branchInsertedAt); // added branch group
+            id.Add(1); // default active branch
+            id.Add(0); // text section
             edit.focusFinal = id;
             requestEdit(target, edit);
         }
@@ -190,6 +203,9 @@ namespace BirdStudio
                 return;
             BranchGroup target = (BranchGroup)masterBranch.getEditable(id);
             EditHistoryItem edit = target.addBranchEdit();
+            id.Add(target.branches.Count); // newly added branch
+            id.Add(0); // text section
+            edit.focusFinal = id;
             requestEdit(target, edit);
         }
 
@@ -245,7 +261,9 @@ namespace BirdStudio
             id.RemoveAt(id.Count - 1);
             Branch target = (Branch)masterBranch.getEditable(id);
             // TODO Confirmation dialogue ("Are you sure you want to delete _ branches (_ subbranches) (_ lines)?")
-            EditHistoryItem edit = target.deleteBranchGroupEdit(branchGroupIndex);
+            RestructureBranchEdit edit = target.deleteBranchGroupEdit(branchGroupIndex);
+            id.Add(edit.nodeIndex); // merged text section
+            edit.focusFinal = id;
             requestEdit(target, edit);
         }
 
@@ -259,7 +277,9 @@ namespace BirdStudio
             id.RemoveAt(id.Count - 1);
             Branch target = (Branch)masterBranch.getEditable(id);
             // TODO Confirmation dialogue ("Are you sure you want to delete _ branches (_ subbranches) (_ lines)?")
-            EditHistoryItem edit = target.acceptBranchGroupEdit(branchGroupIndex);
+            RestructureBranchEdit edit = target.acceptBranchGroupEdit(branchGroupIndex);
+            id.Add(edit.nodeIndex); // merged text section
+            edit.focusFinal = id;
             requestEdit(target, edit);
         }
 

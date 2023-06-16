@@ -9,7 +9,7 @@ namespace BirdStudio
         public List<int> focusFinal;
     }
 
-    class ModifyTextEdit : EditHistoryItem
+    public class ModifyTextEdit : EditHistoryItem
     {
         public int pos;
         public string textRemoved;
@@ -18,32 +18,32 @@ namespace BirdStudio
         public int cursorPosFinal;
     }
 
-    class RestructureBranchEdit : EditHistoryItem
+    public class RestructureBranchEdit : EditHistoryItem
     {
         public int nodeIndex;
         public IBranchSection[] removedSections;
         public IBranchSection[] insertedSections;
     }
 
-    class AddBranchEdit : EditHistoryItem
+    public class AddBranchEdit : EditHistoryItem
     {
         public int activeBranchInitial;
         public Branch branchCopy;
     }
 
-    class ChangeActiveBranchEdit : EditHistoryItem
+    public class ChangeActiveBranchEdit : EditHistoryItem
     {
         public int activeBranchInitial;
         public int activeBranchFinal;
     }
 
-    class RenameBranchEdit : EditHistoryItem
+    public class RenameBranchEdit : EditHistoryItem
     {
         public string branchNameInitial;
         public string branchNameFinal;
     }
 
-    class RemoveBranchEdit : EditHistoryItem
+    public class RemoveBranchEdit : EditHistoryItem
     {
         public int branchIndex;
         public int activeBranchFinal;
