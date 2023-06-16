@@ -166,6 +166,11 @@ namespace BirdStudio
                 branchCopy = branches[activeBranch].clone(),
             };
         }
+
+        public void takeFocus()
+        {
+            headerComponent.Focus();
+        }
     }
 
     public class Branch : IEditable

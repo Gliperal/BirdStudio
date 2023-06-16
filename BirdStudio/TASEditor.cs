@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using System;
 using System.Xml;
+using System.Linq;
 
 namespace BirdStudio
 {
@@ -32,7 +33,7 @@ namespace BirdStudio
                 open(initialFile);
         }
 
-        private void mergeEdits()
+        internal void _mergeEdits()
         {
             if (editHistory.Count < 2)
                 return;
@@ -59,15 +60,40 @@ namespace BirdStudio
             }
         }
 
+        internal void _moveFocus(List<int> focusID)
+        {
+            focusID = new List<int>(focusID);
+            // If focus target is branch, back out to branch group
+            if (focusID.Count % 2 == 0)
+                focusID.RemoveAt(focusID.Count - 1);
+            IEditable focusTarget = masterBranch.getEditable(focusID);
+            if (focusTarget is BranchGroup)
+            {
+                ((BranchGroup)focusTarget).takeFocus();
+            }
+        }
+
+        internal void _reloadComponents()
+        {
+            panel.Children.Clear();
+            panel.Children.Add(header);
+            foreach (UIElement component in masterBranch.getComponents())
+                panel.Children.Add(component);
+            blocksByStartFrame = null;
+            bringActiveLineToFocus();
+            showPlaybackFrame(playbackFrame);
+        }
+
         public void editPerformed(IEditable target, EditHistoryItem edit)
         {
-            List<int> id = masterBranch.findEditTargetID(target);
-            edit.targetID = id;
+            edit.targetID = masterBranch.findEditTargetID(target);
+            IInputElement focusedElement = FocusManager.GetFocusedElement(panel);
+            edit.focusInitial = masterBranch.findEditTargetID(focusedElement, EditableTargetType.Any);
             if (editHistoryLocation < editHistory.Count)
                 editHistory.RemoveRange(editHistoryLocation, editHistory.Count - editHistoryLocation);
             editHistory.Add(edit);
             editHistoryLocation++;
-            mergeEdits();
+            _mergeEdits();
             fileChanged();
             blocksByStartFrame = null;
             if (!tasEditedSinceLastWatch && edit is ModifyTextEdit)
@@ -84,18 +110,8 @@ namespace BirdStudio
             target.performEdit(edit);
             editPerformed(target, edit);
             if (!(edit is ModifyTextEdit))
-                reloadComponents();
-        }
-
-        private void reloadComponents()
-        {
-            panel.Children.Clear();
-            panel.Children.Add(header);
-            foreach (UIElement component in masterBranch.getComponents())
-                panel.Children.Add(component);
-            blocksByStartFrame = null;
-            bringActiveLineToFocus();
-            showPlaybackFrame(playbackFrame);
+                _reloadComponents();
+            _moveFocus(edit.focusFinal == null ? edit.targetID : edit.focusFinal);
         }
 
         public bool canUndo()
@@ -112,8 +128,8 @@ namespace BirdStudio
             target.revertEdit(edit);
             editHistoryLocation--;
             if (!(edit is ModifyTextEdit))
-                reloadComponents();
-            // TODO change focus to sections[edit.sectionIndex]
+                _reloadComponents();
+            _moveFocus(edit.focusInitial == null ? edit.targetID : edit.focusInitial);
             fileChanged();
         }
 
@@ -131,8 +147,8 @@ namespace BirdStudio
             target.performEdit(edit);
             editHistoryLocation++;
             if (!(edit is ModifyTextEdit))
-                reloadComponents();
-            // TODO change focus to sections[edit.sectionIndex]
+                _reloadComponents();
+            _moveFocus(edit.focusFinal == null ? edit.targetID : edit.focusFinal);
             fileChanged();
         }
 
@@ -158,6 +174,11 @@ namespace BirdStudio
                 addBranch();
                 return;
             }
+            int branchInsertedAt = edit.insertedSections.ToList().FindIndex(section => section is BranchGroup);
+            if (branchInsertedAt < 0)
+                throw new Exception("This should never happen.");
+            id.Add(edit.nodeIndex + branchInsertedAt);
+            edit.focusFinal = id;
             requestEdit(target, edit);
         }
 
@@ -266,7 +287,7 @@ namespace BirdStudio
                 throw new FormatException();
             header = new TASEditorHeader(xml.DocumentElement.Attributes);
             masterBranch = Branch.fromXml(xml.DocumentElement, this);
-            reloadComponents();
+            _reloadComponents();
             tasEditedSinceLastWatch = true;
             _clearUndoStack();
         }

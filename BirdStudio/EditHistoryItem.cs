@@ -5,6 +5,8 @@ namespace BirdStudio
     public abstract class EditHistoryItem
     {
         public List<int> targetID;
+        public List<int> focusInitial;
+        public List<int> focusFinal;
     }
 
     class ModifyTextEdit : EditHistoryItem
