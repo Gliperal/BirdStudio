@@ -18,6 +18,7 @@ namespace BirdStudio
             this.parent = parent;
             InitializeComponent();
             this.Focusable = true;
+            this.FocusVisualStyle = null;
             this.LostFocus += Header_OnLostFocus;
             this.KeyDown += Header_OnKeyDown;
             this.MouseRightButtonUp += Header_OnMouseRightButtonUp;

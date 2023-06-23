@@ -134,7 +134,7 @@
                 <MenuItem Name="autosaveMenuItem" Header="_Autosave on Watch" IsCheckable="True" Checked="Menu_AutosaveOn" Unchecked="Menu_AutosaveOff" />
             </MenuItem>
         </Menu>
-        <ScrollViewer x:Name="editorScrollViewer" Grid.Row="1">
+        <ScrollViewer x:Name="editorScrollViewer" Grid.Row="1" FocusVisualStyle="{x:Null}">
             <StackPanel x:Name="editorBase" FocusManager.IsFocusScope="True" />
         </ScrollViewer>
         <TextBlock Style="{DynamicResource TextBlockStyle}"
