@@ -122,6 +122,7 @@ namespace BirdStudio
             editPerformed(target, edit);
             if (!(edit is ModifyTextEdit))
                 _reloadComponents();
+            blocksByStartFrame = null;
             _moveFocus(edit.focusFinal == null ? edit.targetID : edit.focusFinal);
         }
 
@@ -140,8 +141,10 @@ namespace BirdStudio
             editHistoryLocation--;
             if (!(edit is ModifyTextEdit))
                 _reloadComponents();
+            blocksByStartFrame = null;
             _moveFocus(edit.focusInitial == null ? edit.targetID : edit.focusInitial);
             fileChanged();
+            showPlaybackFrame(playbackFrame);
         }
 
         public bool canRedo()
@@ -159,8 +162,10 @@ namespace BirdStudio
             editHistoryLocation++;
             if (!(edit is ModifyTextEdit))
                 _reloadComponents();
+            blocksByStartFrame = null;
             _moveFocus(edit.focusFinal == null ? edit.targetID : edit.focusFinal);
             fileChanged();
+            showPlaybackFrame(playbackFrame);
         }
 
         private void _clearUndoStack()

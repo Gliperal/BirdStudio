@@ -73,7 +73,6 @@ namespace BirdStudio
             if (!(e is ModifyTextEdit))
                 throw new EditTypeNotSupportedException();
             ModifyTextEdit edit = (ModifyTextEdit)e;
-            // text = component.Text;
             // TODO Better way to perform insertions/deletions on the avalon editor?
             // TextLocation deleteStart = component.Document.GetLocation(pos);
             // TextLocation deleteEnd = component.Document.GetLocation(pos + deleteLength);
@@ -90,7 +89,6 @@ namespace BirdStudio
             if (!(e is ModifyTextEdit))
                 throw new EditTypeNotSupportedException();
             ModifyTextEdit edit = (ModifyTextEdit)e;
-            // text = component.Text;
             text = text.Substring(0, edit.pos) + edit.textRemoved + text.Substring(edit.pos + edit.textInserted.Length);
             Text = text;
             CaretOffset = edit.cursorPosInitial;
