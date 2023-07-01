@@ -41,6 +41,7 @@ namespace BirdStudio
             t.Start();
             this.PreviewKeyDown += Window_PreviewKeyDown;
             this.PreviewKeyUp += Window_PreviewKeyUp;
+            this.GotFocus += Window_GotFocus;
             this.PreviewMouseWheel += Window_PreviewMouseWheel;
         }
 
@@ -349,6 +350,12 @@ namespace BirdStudio
                 lCtrlDown = false;
             if (e.Key == Key.RightCtrl)
                 rCtrlDown = false;
+        }
+
+        private void Window_GotFocus(object sender, RoutedEventArgs e)
+        {
+            lCtrlDown = false;
+            rCtrlDown = false;
         }
 
         private void Window_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
