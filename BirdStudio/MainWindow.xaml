@@ -135,7 +135,10 @@
             </MenuItem>
         </Menu>
         <ScrollViewer x:Name="editorScrollViewer" Grid.Row="1" FocusVisualStyle="{x:Null}">
-            <StackPanel x:Name="editorBase" FocusManager.IsFocusScope="True" />
+            <StackPanel>
+                <StackPanel x:Name="editorBase" FocusManager.IsFocusScope="True" />
+                <Separator x:Name="editorScrollPadding" Height="200" Background="Transparent" />
+            </StackPanel>
         </ScrollViewer>
         <TextBlock Style="{DynamicResource TextBlockStyle}"
             Name="helpBlock"

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -43,6 +44,7 @@ namespace BirdStudio
             this.PreviewKeyUp += Window_PreviewKeyUp;
             this.GotFocus += Window_GotFocus;
             this.PreviewMouseWheel += Window_PreviewMouseWheel;
+            editorScrollViewer.ScrollChanged += EditorScrollViewer_ScrollChanged;
         }
 
         private void TalkWithGame()
@@ -361,11 +363,33 @@ namespace BirdStudio
         private void Window_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             // Workaround for avalonEdit stealing my scroll inputs
+            // (also handle scrolling below the document)
+            // TODO: Figure out how to make a UserControl so that all the scrolling stuff can be handled in its own file
+            //     including the scrollViewer stuff in TASEditor:bringActiveLineToFocus()
             if (e.Delta > 0)
+            {
                 editorScrollViewer.ScrollToVerticalOffset(editorScrollViewer.VerticalOffset - 64);
+            }
             else
+            {
+                if (editorScrollViewer.VerticalOffset + 64 > editorScrollViewer.ScrollableHeight)
+                {
+                    editorScrollPadding.Height += editorScrollViewer.VerticalOffset + 64 - editorScrollViewer.ScrollableHeight;
+                    if (editorScrollPadding.Height > this.Height - 84)
+                        editorScrollPadding.Height = this.Height - 84; // TODO you can't just say 84... why 84?
+                }
                 editorScrollViewer.ScrollToVerticalOffset(editorScrollViewer.VerticalOffset + 64);
+            }
             e.Handled = true;
+        }
+
+        private void EditorScrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+        {
+            double excess = editorScrollViewer.ScrollableHeight - editorScrollViewer.VerticalOffset;
+            if (excess > editorScrollPadding.Height)
+                editorScrollPadding.Height = 0;
+            else if (excess > 0)
+                editorScrollPadding.Height -= excess;
         }
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
