@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BirdStudio"
         mc:Ignorable="d"
-        Title="Bird Composer" Height="800" Width="300">
+        Title="Bird Composer v1.2.3" Height="800" Width="300">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

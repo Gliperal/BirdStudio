@@ -8,6 +8,7 @@ namespace BirdStudio
 {
     public abstract class FileManager
     {
+        private const string TITLE = "Bird Studio v1.2.3";
         private MainWindow window;
         private string filePath;
         private bool unsavedChanges = false;
@@ -23,9 +24,9 @@ namespace BirdStudio
         private void _updateWindowTitle()
         {
             if (filePath == null)
-                window.Title = "Bird Studio";
+                window.Title = TITLE;
             else
-                window.Title = (unsavedChanges ? "*" : "") + Util.filePathToFileName(filePath) + " - Bird Studio";
+                window.Title = (unsavedChanges ? "*" : "") + Util.filePathToFileName(filePath) + " - " + TITLE;
         }
 
         private void _setTasFile(string path)
