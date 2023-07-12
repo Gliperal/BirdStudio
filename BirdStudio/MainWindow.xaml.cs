@@ -41,8 +41,6 @@ namespace BirdStudio
             t.IsBackground = true;
             t.Start();
             this.PreviewKeyDown += Window_PreviewKeyDown;
-            this.PreviewKeyUp += Window_PreviewKeyUp;
-            this.GotFocus += Window_GotFocus;
             this.PreviewMouseWheel += Window_PreviewMouseWheel;
             editorScrollViewer.ScrollChanged += EditorScrollViewer_ScrollChanged;
         }
@@ -328,11 +326,7 @@ namespace BirdStudio
             Util.handleCrash(() =>
             {
                 // Workaround for avalonEdit stealing my key gestures
-                if (e.Key == Key.LeftCtrl)
-                    lCtrlDown = true;
-                if (e.Key == Key.RightCtrl)
-                    rCtrlDown = true;
-                bool ctrlDown = lCtrlDown || rCtrlDown;
+                bool ctrlDown = Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl);
                 if (ctrlDown && e.Key == Key.Z)
                 {
                     editor.undo();
@@ -344,20 +338,6 @@ namespace BirdStudio
                     e.Handled = true;
                 }
             });
-        }
-
-        private void Window_PreviewKeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.LeftCtrl)
-                lCtrlDown = false;
-            if (e.Key == Key.RightCtrl)
-                rCtrlDown = false;
-        }
-
-        private void Window_GotFocus(object sender, RoutedEventArgs e)
-        {
-            lCtrlDown = false;
-            rCtrlDown = false;
         }
 
         private void Window_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
