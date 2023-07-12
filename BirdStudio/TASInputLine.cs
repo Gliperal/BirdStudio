@@ -80,6 +80,19 @@ namespace BirdStudio
             return true;
         }
 
+        public bool Contains(TASInputLine that)
+        {
+            if (frames < that.frames)
+                return false;
+            foreach (char button in buttons)
+                if (!that.buttons.Contains(button))
+                    return false;
+            foreach (char button in that.buttons)
+                if (!buttons.Contains(button))
+                    return false;
+            return true;
+        }
+
         public string toText()
         {
             if (buttons.Length == 0)

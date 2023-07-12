@@ -315,6 +315,8 @@ namespace BirdStudio
                     continue;
                 if (inputLines[i].Equals(newInputs[0]))
                     newInputs.RemoveAt(0);
+                else if (newInputs[0].Contains(inputLines[i]))
+                    newInputs[0].frames -= inputLines[i].frames;
                 else
                 {
                     int split = Util.nthIndexOf(text, '\n', i);
