@@ -9,7 +9,7 @@ namespace BirdStudio
     /// <summary>
     /// Interaction logic for TASEditorHeader.xaml
     /// </summary>
-    public partial class TASEditorHeader : UserControl
+    public partial class EditorHeader : UserControl
     {
         private string _getAttribute(XmlAttributeCollection attributes, string name, string ifNotExists)
         {
@@ -19,7 +19,7 @@ namespace BirdStudio
             return attribute.InnerText;
         }
 
-        public TASEditorHeader(XmlAttributeCollection attributes)
+        public EditorHeader(XmlAttributeCollection attributes)
         {
             InitializeComponent();
             stageInput.Text = _getAttribute(attributes, "stage", "");

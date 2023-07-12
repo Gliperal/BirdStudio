@@ -8,22 +8,22 @@ using System.Linq;
 
 namespace BirdStudio
 {
-    public class TASEditor : FileManager
+    public class Editor : FileManager
     {
         private const string DEFAULT_FILE_TEXT = "<tas stage=\"Twin Tree Village\"><inputs>  29\n</inputs></tas>";
 
-        private TASEditorHeader header;
+        private EditorHeader header;
         private StackPanel panel;
         private ScrollViewer scrollViewer;
         private Branch masterBranch;
         private List<EditHistoryItem> editHistory = new List<EditHistoryItem>();
         private int editHistoryLocation = 0;
         private bool tasEditedSinceLastWatch = true;
-        private TASEditorSection highlightedSection;
+        private InputsBlock highlightedSection;
         private int playbackFrame = -1;
         private List<FrameAndBlock> blocksByStartFrame;
 
-        public TASEditor(MainWindow window, StackPanel panel, ScrollViewer scrollViewer, string initialFile = null) : base(window)
+        public Editor(MainWindow window, StackPanel panel, ScrollViewer scrollViewer, string initialFile = null) : base(window)
         {
             this.panel = panel;
             this.scrollViewer = scrollViewer;
@@ -72,15 +72,15 @@ namespace BirdStudio
             IEditable focusTarget = masterBranch.getEditable(focusID);
             if (focusTarget is BranchGroup)
                 ((BranchGroup)focusTarget).headerComponent.Focus();
-            else if (focusTarget is TASEditorSection)
+            else if (focusTarget is InputsBlock)
             {
-                TASEditorSection focusTargetS = (TASEditorSection)focusTarget;
+                InputsBlock focusTargetS = (InputsBlock)focusTarget;
                 if (focusTargetS.IsLoaded)
                     focusTargetS.TextArea.Focus();
                 else
                     // Workaround because it isn't loaded yet (unlike the
                     // branch group for some reason..?)
-                    ((TASEditorSection)focusTarget).focusOnLoad = true;
+                    ((InputsBlock)focusTarget).focusOnLoad = true;
             }
         }
 
@@ -310,7 +310,7 @@ namespace BirdStudio
             xml.LoadXml(tas);
             if (xml.DocumentElement.Name != "tas")
                 throw new FormatException();
-            header = new TASEditorHeader(xml.DocumentElement.Attributes);
+            header = new EditorHeader(xml.DocumentElement.Attributes);
             masterBranch = Branch.fromXml(xml.DocumentElement, this);
             _reloadComponents();
             tasEditedSinceLastWatch = true;
@@ -322,7 +322,7 @@ namespace BirdStudio
             return header.toXml(masterBranch.toInnerXml());
         }
 
-        public void onReplaySaved(string levelName, TASInputs newInputs)
+        public void onReplaySaved(string levelName, Inputs newInputs)
         {
             App.Current.Dispatcher.Invoke((Action)delegate // need to update on main thread
             {
@@ -350,7 +350,7 @@ namespace BirdStudio
             FrameAndBlock fb = blocksByStartFrame.FindLast(fb => fb.frame < frame);
             if (fb == null)
                 fb = blocksByStartFrame[blocksByStartFrame.Count - 1];
-            TASEditorSection block = fb.block;
+            InputsBlock block = fb.block;
             block.showPlaybackFrame(frame - fb.frame);
             if (highlightedSection != null && highlightedSection != block)
                 highlightedSection.showPlaybackFrame(-1);
@@ -362,7 +362,7 @@ namespace BirdStudio
             if (UserPreferences.get("autosave", "false") == "true")
                 save();
             string text = masterBranch.getText();
-            TASInputs tas = new TASInputs(text);
+            Inputs tas = new Inputs(text);
             List<Press> presses = tas.toPresses();
             if (presses.Count > 0 && presses[0].frame == 0)
                 MessageBox.Show("Warning: \"" + header.stage() + "\" tas may not be legal due to inputs on the first frame.");
@@ -384,7 +384,7 @@ namespace BirdStudio
             List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.InputBlock);
             if (id == null)
                 return;
-            TASEditorSection block = (TASEditorSection)masterBranch.getEditable(id);
+            InputsBlock block = (InputsBlock)masterBranch.getEditable(id);
             int lineWithinBlock = block.TextArea.Caret.Line - 1;
             int frameWithinBlock = block.getInputsData().endingFrameForLine(lineWithinBlock);
             _watch(masterBranch.getStartFrameOfBlock(block) + frameWithinBlock);
@@ -398,7 +398,7 @@ namespace BirdStudio
             List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.InputBlock);
             if (id == null)
                 return;
-            TASEditorSection block = (TASEditorSection)masterBranch.getEditable(id);
+            InputsBlock block = (InputsBlock)masterBranch.getEditable(id);
             TopBottom activeLine = masterBranch.activeLineYPos(block);
             if (activeLine == null)
                 return;
@@ -417,7 +417,7 @@ namespace BirdStudio
             List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.InputBlock);
             if (id == null)
                 return;
-            TASEditorSection block = (TASEditorSection)masterBranch.getEditable(id);
+            InputsBlock block = (InputsBlock)masterBranch.getEditable(id);
             block.comment();
         }
 
@@ -437,13 +437,8 @@ namespace BirdStudio
             List<int> id = masterBranch.findEditTargetID(focusedElement, EditableTargetType.InputBlock);
             if (id == null)
                 return;
-            TASEditorSection block = (TASEditorSection)masterBranch.getEditable(id);
+            InputsBlock block = (InputsBlock)masterBranch.getEditable(id);
             block.insertLine(timestamp);
         }
     }
 }
-
-// undo/redo: https://stackoverflow.com/questions/1900450/wpf-how-to-prevent-a-control-from-stealing-a-key-gesture
-// Can maybe use avalonEdit code folding to get the correct line numbers?
-// Use UndoStack.ClearAll() after every change to prevent undo/redo
-// When changing components: component.Focus();

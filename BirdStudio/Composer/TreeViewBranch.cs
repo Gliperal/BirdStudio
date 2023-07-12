@@ -54,7 +54,7 @@ namespace BirdStudio
                 xml.LoadXml(tas);
                 if (xml.DocumentElement.Name != "tas")
                     throw new Exception();
-                TASEditorHeader header = new TASEditorHeader(xml.DocumentElement.Attributes);
+                EditorHeader header = new EditorHeader(xml.DocumentElement.Attributes);
                 Branch branch = Branch.fromXml(xml.DocumentElement, null);
                 TreeViewBranch x = new TreeViewBranch(null, filename, filename, branch);
                 x.stage = header.stage();

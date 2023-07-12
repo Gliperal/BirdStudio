@@ -6,13 +6,13 @@ using Newtonsoft.Json;
 
 namespace BirdStudio
 {
-    class Keybind
+    public class Keybind
     {
         public int key { get; set; }
         public int modifiers { get; set; }
     }
 
-    class PreferencesData
+    public class PreferencesData
     {
         public string DarkMode { get; set; }
         public string ShowHelp { get; set; }
@@ -20,7 +20,7 @@ namespace BirdStudio
         public IDictionary<string, Keybind> KeyBindings { get; set; }
     }
 
-    class UserPreferences
+    public class UserPreferences
     {
         private const string PREFERENCE_FILE = "./preferences.json";
         private static bool loaded = false;

@@ -9,18 +9,18 @@ using ICSharpCode.AvalonEdit;
 
 namespace BirdStudio
 {
-    // TODO Maybe rename this to something like InputsBlock or InputsSection
-    public class TASEditorSection : TextEditor, IBranchSection
+    public class InputsBlock : TextEditor, IBranchSection
     {
-        private TASEditor editor;
+        private Editor editor;
+        public Branch parent;
         private LineHighlighter bgRenderer;
 
         private string text;
         bool ignoreCaretChanges;
-        private TASInputs inputsData;
+        private Inputs inputsData;
         public bool focusOnLoad = false;
 
-        public TASEditorSection(string initialText, TASEditor editor)
+        public InputsBlock(string initialText, Editor editor)
         {
             this.editor = editor;
             Padding = new Thickness(10, 0, 0, 0);
@@ -51,7 +51,7 @@ namespace BirdStudio
 
         public IBranchSection clone()
         {
-            return new TASEditorSection(text, editor);
+            return new InputsBlock(text, editor);
         }
 
         public string getText()
@@ -59,11 +59,11 @@ namespace BirdStudio
             return text;
         }
 
-        public TASInputs getInputsData()
+        public Inputs getInputsData()
         {
             if (inputsData != null)
                 return inputsData;
-            inputsData = new TASInputs(text);
+            inputsData = new Inputs(text);
             return inputsData;
         }
 
@@ -100,7 +100,7 @@ namespace BirdStudio
         private void _userEdit(int pos, int deleteLength, string insert)
         {
             LinesInfo linesInfo = new LinesInfo(text, pos, deleteLength);
-            bool firstLineIsInputLine = TASInputLine.isInputLine(linesInfo.firstLine);
+            bool firstLineIsInputLine = InputsLine.isInputLine(linesInfo.firstLine);
             if (firstLineIsInputLine && deleteLength == 0)
             {
                 if (insert == "#")
@@ -122,7 +122,7 @@ namespace BirdStudio
                 }
             }
             string line = linesInfo.preText + insert + linesInfo.postText;
-            TASInputLine inputLine = TASInputLine.from(line);
+            InputsLine inputLine = InputsLine.from(line);
             if (inputLine != null && !insert.Contains('\n'))
             {
                 string reformattedLine = inputLine.reformat(insert).toText();
@@ -306,9 +306,9 @@ namespace BirdStudio
             });
         }
 
-        public bool updateInputs(List<TASInputLine> newInputs, bool force, ref NewBranchInfo newBranchInfo)
+        public bool updateInputs(List<InputsLine> newInputs, bool force, ref NewBranchInfo newBranchInfo)
         {
-            List<TASInputLine> inputLines = getInputsData().getInputLines();
+            List<InputsLine> inputLines = getInputsData().getInputLines();
             for (int i = 0; i < inputLines.Count && newInputs.Count > 0; i++)
             {
                 if (inputLines[i] == null || inputLines[i].frames == 0)
@@ -321,7 +321,7 @@ namespace BirdStudio
                 {
                     int split = Util.nthIndexOf(text, '\n', i);
                     string newBranchText = "";
-                    foreach (TASInputLine inputLine in newInputs)
+                    foreach (InputsLine inputLine in newInputs)
                         newBranchText += inputLine.toText() + '\n';
                     newBranchInfo = new NewBranchInfo
                     {
@@ -338,7 +338,7 @@ namespace BirdStudio
             if (force)
             {
                 string addedText = "";
-                foreach (TASInputLine inputLine in newInputs)
+                foreach (InputsLine inputLine in newInputs)
                     addedText += inputLine.toText() + '\n';
                 editor.requestEdit(this, new ModifyTextEdit
                 {

@@ -7,169 +7,10 @@ using System.Xml;
 
 namespace BirdStudio
 {
-    public enum EditableTargetType
-    {
-        Any,
-        InputBlock,
-        Branch,
-        BranchGroup,
-    }
-
-    public interface IBranchSection : IEditable
-    {
-        public string getText();
-        public IBranchSection clone();
-    }
-
-    public class BranchGroup : IBranchSection
-    {
-        private TASEditor editor;
-        public BranchGroupHeader headerComponent;
-        public List<Branch> branches;
-        public int activeBranch;
-
-        public BranchGroup(TASEditor editor, List<Branch> branches, int activeBranch = 0)
-        {
-            this.editor = editor;
-            this.branches = branches;
-            this.activeBranch = activeBranch;
-            headerComponent = new BranchGroupHeader(this);
-            updateHeader();
-        }
-
-        public IBranchSection clone()
-        {
-            List<Branch> newBranches = new List<Branch>();
-            foreach (Branch branch in branches)
-                newBranches.Add(branch.clone());
-            return new BranchGroup(editor, newBranches, activeBranch);
-        }
-
-        public Branch getActiveBranch()
-        {
-            return branches[activeBranch];
-        }
-
-        public void updateHeader()
-        {
-            headerComponent.setBranch($"({activeBranch + 1}/{branches.Count})", branches[activeBranch].getName());
-        }
-
-        public void renameBranch()
-        {
-            headerComponent.beginRename();
-        }
-
-        public void requestBranchNameChange(string newName)
-        {
-            EditHistoryItem edit = new RenameBranchEdit
-            {
-                branchNameInitial = branches[activeBranch].getName(),
-                branchNameFinal = newName,
-            };
-            editor.requestEdit(branches[activeBranch], edit);
-        }
-
-        public string getText()
-        {
-            return branches[activeBranch].getText();
-        }
-
-        public void performEdit(EditHistoryItem edit)
-        {
-            if (edit is AddBranchEdit)
-            {
-                AddBranchEdit addEdit = (AddBranchEdit)edit;
-                branches.Add(addEdit.branchCopy.clone());
-                activeBranch = branches.Count - 1;
-                // TODO any time the active branch changes, the focussed element should also change
-            }
-            else if (edit is ChangeActiveBranchEdit)
-            {
-                ChangeActiveBranchEdit changeEdit = (ChangeActiveBranchEdit)edit;
-                activeBranch = changeEdit.activeBranchFinal;
-            }
-            else if (edit is RemoveBranchEdit)
-            {
-                RemoveBranchEdit removeEdit = (RemoveBranchEdit)edit;
-                branches.RemoveAt(removeEdit.branchIndex);
-                activeBranch = removeEdit.activeBranchFinal;
-            }
-            else
-                throw new EditTypeNotSupportedException();
-        }
-
-        public void revertEdit(EditHistoryItem edit)
-        {
-            if (edit is AddBranchEdit)
-            {
-                AddBranchEdit addEdit = (AddBranchEdit)edit;
-                branches.RemoveAt(branches.Count - 1);
-                activeBranch = addEdit.activeBranchInitial;
-            }
-            else if (edit is ChangeActiveBranchEdit)
-            {
-                ChangeActiveBranchEdit changeEdit = (ChangeActiveBranchEdit)edit;
-                activeBranch = changeEdit.activeBranchInitial;
-            }
-            else if (edit is RemoveBranchEdit)
-            {
-                RemoveBranchEdit removeEdit = (RemoveBranchEdit)edit;
-                branches.Insert(removeEdit.branchIndex, removeEdit.branchCopy.clone());
-                activeBranch = removeEdit.branchIndex;
-            }
-            else
-                throw new EditTypeNotSupportedException();
-        }
-
-        public EditHistoryItem addBranchEdit()
-        {
-            return new AddBranchEdit
-            {
-                activeBranchInitial = activeBranch,
-                branchCopy = Branch.fromText("unnamed branch", "", editor),
-            };
-        }
-
-        public bool canChangeBranch(int offset)
-        {
-            return
-                (offset < 0 && activeBranch > 0) ||
-                (offset > 0 && activeBranch < branches.Count - 1);
-        }
-
-        public EditHistoryItem changeBranchEdit(int offset)
-        {
-            int newActiveBranch = activeBranch + offset;
-            if (newActiveBranch < 0)
-                newActiveBranch = 0;
-            if (newActiveBranch >= branches.Count)
-                newActiveBranch = branches.Count - 1;
-            if (newActiveBranch == activeBranch)
-                return null;
-            return new ChangeActiveBranchEdit
-            {
-                activeBranchInitial = activeBranch,
-                activeBranchFinal = newActiveBranch,
-            };
-        }
-
-        public EditHistoryItem removeBranchEdit()
-        {
-            if (branches.Count <= 1)
-                return null;
-            return new RemoveBranchEdit
-            {
-                branchIndex = activeBranch,
-                activeBranchFinal = (activeBranch > 0) ? activeBranch - 1 : 0,
-                branchCopy = branches[activeBranch].clone(),
-            };
-        }
-    }
-
     public class Branch : IEditable
     {
-        private TASEditor editor;
+        private Editor editor;
+        public BranchGroup parent;
         private string name;
         public List<IBranchSection> nodes = new List<IBranchSection>();
 
@@ -180,7 +21,7 @@ namespace BirdStudio
             name = src.name;
             nodes = new List<IBranchSection>();
             foreach (IBranchSection node in src.nodes)
-                nodes.Add(node.clone());
+                _insertNode(node.clone());
             editor = src.editor;
         }
 
@@ -189,19 +30,31 @@ namespace BirdStudio
             return new Branch(this);
         }
 
-        public static Branch fromText(string name, string text, TASEditor editor)
+        private void _insertNode(IBranchSection node, int index=-1)
         {
-            List<IBranchSection> nodes = new List<IBranchSection>();
-            nodes.Add(new TASEditorSection(text, editor));
-            return new Branch
-            {
-                name = name,
-                nodes = nodes,
-                editor = editor,
-            };
+            if (node is InputsBlock)
+                ((InputsBlock)node).parent = this;
+            if (node is BranchGroup)
+                ((BranchGroup)node).parent = this;
+            if (index == -1)
+                nodes.Add(node);
+            else
+                nodes.Insert(index, node);
         }
 
-        public static Branch fromXml(XmlNode xml, TASEditor editor)
+        public static Branch fromText(string name, string text, Editor editor)
+        {
+            Branch branch = new Branch
+            {
+                name = name,
+                nodes = new List<IBranchSection>(),
+                editor = editor,
+            };
+            branch._insertNode(new InputsBlock(text, editor));
+            return branch;
+        }
+
+        public static Branch fromXml(XmlNode xml, Editor editor)
         {
             string branchName = Util.getXmlAttribute(xml, "name", "unnamed branch");
             Branch branch = new Branch { name = branchName, editor = editor };
@@ -211,7 +64,7 @@ namespace BirdStudio
                 {
                     string inputs = node.InnerText;
                     inputs = Util.removeSandwichingNewlines(inputs);
-                    branch.nodes.Add(new TASEditorSection(inputs, editor));
+                    branch._insertNode(new InputsBlock(inputs, editor));
                 }
                 else if (node.Name == "branch")
                 {
@@ -225,7 +78,7 @@ namespace BirdStudio
                     }
                     if (branches.Count == 0)
                         throw new FormatException();
-                    branch.nodes.Add(new BranchGroup(editor, branches, activeBranch));
+                    branch._insertNode(new BranchGroup(editor, branches, activeBranch));
                 }
                 else
                     throw new FormatException();
@@ -238,8 +91,8 @@ namespace BirdStudio
             string contents = "";
             foreach (IEditable node in nodes)
             {
-                if (node is TASEditorSection)
-                    contents += "<inputs>\n" + ((TASEditorSection)node).getText() + "\n</inputs>";
+                if (node is InputsBlock)
+                    contents += "<inputs>\n" + ((InputsBlock)node).getText() + "\n</inputs>";
                 else
                 {
                     contents += $"<branch active=\"{((BranchGroup)node).activeBranch}\">";
@@ -268,8 +121,8 @@ namespace BirdStudio
             List<UIElement> components = new List<UIElement>();
             foreach (IEditable node in nodes)
             {
-                if (node is TASEditorSection)
-                    components.Add((TASEditorSection)node);
+                if (node is InputsBlock)
+                    components.Add((InputsBlock)node);
                 else
                 {
                     BranchGroup branchGroup = (BranchGroup)node;
@@ -300,9 +153,9 @@ namespace BirdStudio
         {
             for (int i = 0; i < nodes.Count; i++)
             {
-                if (nodes[i] is TASEditorSection)
+                if (nodes[i] is InputsBlock)
                 {
-                    if (((TASEditorSection)nodes[i]).TextArea == element)
+                    if (((InputsBlock)nodes[i]).TextArea == element)
                     {
                         target = nodes[i];
                         return new List<int> { i };
@@ -376,7 +229,7 @@ namespace BirdStudio
                         id.RemoveAt(id.Count - 1);
                     return id;
                 case EditableTargetType.InputBlock:
-                    if (target is TASEditorSection)
+                    if (target is InputsBlock)
                         return id;
                     return null;
                 case EditableTargetType.BranchGroup:
@@ -411,7 +264,7 @@ namespace BirdStudio
         public RestructureBranchEdit newBranchGroupEdit(int inputBlockIndex, NewBranchInfo split = null, string newBranchName = "unnamed branch")
         {
             if (split == null)
-                split = ((TASEditorSection)nodes[inputBlockIndex]).splitOutBranch();
+                split = ((InputsBlock)nodes[inputBlockIndex]).splitOutBranch();
             Branch mainBranch = fromText("main branch", split.splitText, editor);
             if (split.bottomless && inputBlockIndex < nodes.Count - 1)
                 mainBranch.nodes.AddRange(nodes.GetRange(inputBlockIndex + 1, nodes.Count - inputBlockIndex - 1));
@@ -424,10 +277,10 @@ namespace BirdStudio
             List<IBranchSection> removedSections = Util.getRangeClone(nodes, inputBlockIndex, removeCount);
             List<IBranchSection> insertedSections = new List<IBranchSection>();
             if (split.preText != null)
-                insertedSections.Add(new TASEditorSection(split.preText, editor));
+                insertedSections.Add(new InputsBlock(split.preText, editor));
             insertedSections.Add(branchGroup);
             if (split.postText != null)
-                insertedSections.Add(new TASEditorSection(split.postText, editor));
+                insertedSections.Add(new InputsBlock(split.postText, editor));
             return new RestructureBranchEdit
             {
                 nodeIndex = inputBlockIndex,
@@ -441,15 +294,15 @@ namespace BirdStudio
             string replacementText = "";
             int deleteStart = branchGroupIndex;
             int deleteCount = 1;
-            if (branchGroupIndex > 0 && nodes[branchGroupIndex - 1] is TASEditorSection)
+            if (branchGroupIndex > 0 && nodes[branchGroupIndex - 1] is InputsBlock)
             {
                 deleteStart--;
-                replacementText = ((TASEditorSection)nodes[branchGroupIndex - 1]).getText() + "\n" + replacementText;
+                replacementText = ((InputsBlock)nodes[branchGroupIndex - 1]).getText() + "\n" + replacementText;
                 deleteCount++;
             }
-            if (branchGroupIndex < nodes.Count - 1 && nodes[branchGroupIndex + 1] is TASEditorSection)
+            if (branchGroupIndex < nodes.Count - 1 && nodes[branchGroupIndex + 1] is InputsBlock)
             {
-                replacementText += "\n" + ((TASEditorSection)nodes[branchGroupIndex + 1]).getText();
+                replacementText += "\n" + ((InputsBlock)nodes[branchGroupIndex + 1]).getText();
                 deleteCount++;
             }
             return new RestructureBranchEdit
@@ -458,7 +311,7 @@ namespace BirdStudio
                 removedSections = Util.getRangeClone(nodes, deleteStart, deleteCount).ToArray(),
                 insertedSections = new IBranchSection[]
                 {
-                    new TASEditorSection(replacementText, editor)
+                    new InputsBlock(replacementText, editor)
                 },
             };
         }
@@ -470,25 +323,25 @@ namespace BirdStudio
             int deleteStart = branchGroupIndex;
             int deleteCount = 1;
             if (
-                branchGroupIndex > 0 && nodes[branchGroupIndex - 1] is TASEditorSection &&
-                insertedSections.First() is TASEditorSection
+                branchGroupIndex > 0 && nodes[branchGroupIndex - 1] is InputsBlock &&
+                insertedSections.First() is InputsBlock
             )
             {
                 deleteStart--;
                 deleteCount++;
-                string text = ((TASEditorSection)nodes[branchGroupIndex - 1]).getText();
+                string text = ((InputsBlock)nodes[branchGroupIndex - 1]).getText();
                 text += "\n" + insertedSections.First().getText();
-                insertedSections[0] = new TASEditorSection(text, editor);
+                insertedSections[0] = new InputsBlock(text, editor);
             }
             if (
-                branchGroupIndex < nodes.Count - 1 && nodes[branchGroupIndex + 1] is TASEditorSection &&
-                insertedSections.Last() is TASEditorSection
+                branchGroupIndex < nodes.Count - 1 && nodes[branchGroupIndex + 1] is InputsBlock &&
+                insertedSections.Last() is InputsBlock
             )
             {
                 deleteCount++;
                 string text = insertedSections.Last().getText();
-                text += "\n" + ((TASEditorSection)nodes[branchGroupIndex + 1]).getText();
-                insertedSections[insertedSections.Length - 1] = new TASEditorSection(text, editor);
+                text += "\n" + ((InputsBlock)nodes[branchGroupIndex + 1]).getText();
+                insertedSections[insertedSections.Length - 1] = new InputsBlock(text, editor);
             }
             return new RestructureBranchEdit
             {
@@ -498,14 +351,14 @@ namespace BirdStudio
             };
         }
 
-        internal bool updateInputs(List<TASInputLine> newInputs, bool force)
+        internal bool updateInputs(List<InputsLine> newInputs, bool force)
         {
             for (int i = 0; i < nodes.Count; i++)
             {
                 bool lastChance = force && (i == nodes.Count - 1);
-                if (nodes[i] is TASEditorSection)
+                if (nodes[i] is InputsBlock)
                 {
-                    TASEditorSection inputNode = (TASEditorSection)nodes[i];
+                    InputsBlock inputNode = (InputsBlock)nodes[i];
                     NewBranchInfo newBranchInfo = null;
                     bool done = inputNode.updateInputs(newInputs, lastChance, ref newBranchInfo);
                     if (done && newBranchInfo != null)
@@ -541,7 +394,7 @@ namespace BirdStudio
                 for (int i = 0; i < restructureEdit.insertedSections.Length; i++)
                 {
                     IBranchSection section = restructureEdit.insertedSections[i];
-                    nodes.Insert(restructureEdit.nodeIndex + i, section.clone());
+                    _insertNode(section.clone(), restructureEdit.nodeIndex + i);
                 }
             }
             else
@@ -562,7 +415,7 @@ namespace BirdStudio
                 for (int i = 0; i < restructureEdit.removedSections.Length; i++)
                 {
                     IBranchSection section = restructureEdit.removedSections[i];
-                    nodes.Insert(restructureEdit.nodeIndex + i, section.clone());
+                    _insertNode(section.clone(), restructureEdit.nodeIndex + i);
                 }
             }
             else
@@ -573,9 +426,9 @@ namespace BirdStudio
         {
             foreach (IBranchSection node in nodes)
             {
-                if (node is TASEditorSection)
+                if (node is InputsBlock)
                 {
-                    TASEditorSection inputNode = (TASEditorSection)node;
+                    InputsBlock inputNode = (InputsBlock)node;
                     blocks.Add(new FrameAndBlock
                     {
                         frame = startFrame,
@@ -599,14 +452,14 @@ namespace BirdStudio
         /// not contain block, then count is incremented by the total number
         /// of frames in the block, and false is returned.
         /// </summary>
-        private bool getStartFrameOfBlock(TASEditorSection block, ref int count)
+        private bool getStartFrameOfBlock(InputsBlock block, ref int count)
         {
             foreach (IBranchSection node in nodes)
             {
                 if (node == block)
                     return true;
-                else if (node is TASEditorSection)
-                    count += ((TASEditorSection)node).getInputsData().totalFrames();
+                else if (node is InputsBlock)
+                    count += ((InputsBlock)node).getInputsData().totalFrames();
                 else if (node is BranchGroup)
                 {
                     Branch activeBranch = ((BranchGroup)node).getActiveBranch();
@@ -618,7 +471,7 @@ namespace BirdStudio
             return false;
         }
 
-        public int getStartFrameOfBlock(TASEditorSection block)
+        public int getStartFrameOfBlock(InputsBlock block)
         {
             int startFrame = 0;
             bool found = getStartFrameOfBlock(block, ref startFrame);
@@ -627,7 +480,7 @@ namespace BirdStudio
             return -1;
         }
 
-        public TopBottom activeLineYPos(TASEditorSection activeBlock)
+        public TopBottom activeLineYPos(InputsBlock activeBlock)
         {
             double y = 0;
             foreach (UIElement component in getComponents())

@@ -90,7 +90,7 @@ namespace BirdStudio
             foreach (TreeViewBranch child in children)
             {
                 string text = child.branch.getText();
-                TASInputs tas = new TASInputs(text);
+                Inputs tas = new Inputs(text);
                 List<Press> presses = tas.toPresses();
                 Replay replay = new Replay(presses);
                 string replayBuffer = replay.writeString();

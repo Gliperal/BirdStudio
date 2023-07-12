@@ -2,26 +2,26 @@
 
 namespace BirdStudio
 {
-    public class TASInputs
+    public class Inputs
     {
         public const string BUTTONS = "RLUDJXGCQMN";
 
-        private List<TASInputLine> inputLines;
+        private List<InputsLine> inputLines;
         private int frameCount;
         private List<int> startingFrames; // 1 larger in size than inputLines
 
-        public TASInputs(string text)
+        public Inputs(string text)
         {
-            inputLines = new List<TASInputLine>();
+            inputLines = new List<InputsLine>();
             string[] lines = text.Split('\n');
             foreach (string line in lines)
-                inputLines.Add(TASInputLine.from(line));
+                inputLines.Add(InputsLine.from(line));
             countFrames();
         }
 
-        public TASInputs(List<Press> presses)
+        public Inputs(List<Press> presses)
         {
-            inputLines = new List<TASInputLine>();
+            inputLines = new List<InputsLine>();
             presses.Sort(Press.compareFrames);
             HashSet<char> state = new HashSet<char>();
             int frame = 0;
@@ -29,7 +29,7 @@ namespace BirdStudio
             {
                 if (press.frame > frame)
                 {
-                    inputLines.Add(new TASInputLine(press.frame - frame, string.Join("", state)));
+                    inputLines.Add(new InputsLine(press.frame - frame, string.Join("", state)));
                     frame = press.frame;
                 }
                 if (press.on)
@@ -37,7 +37,7 @@ namespace BirdStudio
                 else
                     state.Remove(press.button);
             }
-            inputLines.Add(new TASInputLine(1, string.Join("", state)));
+            inputLines.Add(new InputsLine(1, string.Join("", state)));
         }
 
         private void countFrames()
@@ -61,7 +61,7 @@ namespace BirdStudio
             int frame = 0;
             for (int i = 0; i < inputLines.Count; i++)
             {
-                TASInputLine inputLine = inputLines[i];
+                InputsLine inputLine = inputLines[i];
                 if (inputLine == null)
                     continue;
                 // ignore 0,... lines that aren't at the end
@@ -93,7 +93,7 @@ namespace BirdStudio
             return presses;
         }
 
-        public List<TASInputLine> getInputLines()
+        public List<InputsLine> getInputLines()
         {
             return inputLines;
         }
@@ -101,7 +101,7 @@ namespace BirdStudio
         public string toText(string stage = null, int rerecords = 0)
         {
             string text = "";
-            foreach (TASInputLine inputLine in inputLines)
+            foreach (InputsLine inputLine in inputLines)
                 text += inputLine.toText() + '\n';
             if (stage != null)
                 text = ">stage " + stage + "\n>rerecords " + rerecords + "\n\n" + text;

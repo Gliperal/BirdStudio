@@ -104,7 +104,7 @@ namespace BirdStudio
                     {
                         Replay replay = new Replay(file);
                         List<Press> presses = replay.toPresses();
-                        TASInputs inputs = new TASInputs(presses);
+                        Inputs inputs = new Inputs(presses);
                         _importFromFile(inputs.toText("unknown", 0));
                         _setTasFile(null);
                         return;

@@ -17,7 +17,7 @@ namespace BirdStudio
     public class FrameAndBlock
     {
         public int frame;
-        public TASEditorSection block;
+        public InputsBlock block;
     }
 
     public class NewBranchInfo

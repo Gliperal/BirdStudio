@@ -13,7 +13,7 @@ namespace BirdStudio
     /// </summary>
     public partial class MainWindow : Window
     {
-        private TASEditor editor;
+        private Editor editor;
         private bool lCtrlDown;
         private bool rCtrlDown;
 
@@ -22,7 +22,7 @@ namespace BirdStudio
             InitializeComponent();
             string[] args = Environment.GetCommandLineArgs();
             string file = (args.Length > 1) ? args[1] : null;
-            editor = new TASEditor(this, editorBase, editorScrollViewer, file);
+            editor = new Editor(this, editorBase, editorScrollViewer, file);
             if (UserPreferences.get("dark mode", "false") == "true")
             {
                 ColorScheme.instance().DarkMode();
@@ -93,7 +93,7 @@ namespace BirdStudio
             }
             catch (FormatException e) { return; }
             List<Press> presses = replay.toPresses();
-            TASInputs newInputs = new TASInputs(presses);
+            Inputs newInputs = new Inputs(presses);
             editor.onReplaySaved(levelName, newInputs);
         }
 

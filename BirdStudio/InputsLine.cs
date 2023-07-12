@@ -3,18 +3,18 @@ using System.Collections.Generic;
 
 namespace BirdStudio
 {
-    public class TASInputLine
+    public class InputsLine
     {
         public int frames;
         public string buttons;
 
-        public TASInputLine(int frames, string buttons)
+        public InputsLine(int frames, string buttons)
         {
             this.frames = frames;
             this.buttons = buttons;
         }
 
-        public static TASInputLine from(string line)
+        public static InputsLine from(string line)
         {
             line = line.Trim();
             if (line == "" || line.StartsWith('#') || line.StartsWith('>'))
@@ -28,10 +28,10 @@ namespace BirdStudio
                 if (!Char.IsLetter(c))
                     return null;
             if (split == 0)
-                return new TASInputLine(0, buttons);
+                return new InputsLine(0, buttons);
             try
             {
-                return new TASInputLine(Int32.Parse(frames), buttons);
+                return new InputsLine(Int32.Parse(frames), buttons);
             }
             catch
             {
@@ -39,7 +39,7 @@ namespace BirdStudio
             }
         }
 
-        public TASInputLine reformat(string favoredButtons)
+        public InputsLine reformat(string favoredButtons)
         {
             HashSet<char> newButtons = new HashSet<char>();
             foreach (char c in buttons)
@@ -64,10 +64,10 @@ namespace BirdStudio
                 else
                     newButtons.Remove('R');
             }
-            return new TASInputLine(frames, string.Join("", newButtons));
+            return new InputsLine(frames, string.Join("", newButtons));
         }
 
-        public bool Equals(TASInputLine that)
+        public bool Equals(InputsLine that)
         {
             if (frames != that.frames)
                 return false;
@@ -80,7 +80,7 @@ namespace BirdStudio
             return true;
         }
 
-        public bool Contains(TASInputLine that)
+        public bool Contains(InputsLine that)
         {
             if (frames < that.frames)
                 return false;
@@ -97,7 +97,7 @@ namespace BirdStudio
         {
             if (buttons.Length == 0)
                 return String.Format("{0,4}", frames);
-            const string order = TASInputs.BUTTONS;
+            const string order = Inputs.BUTTONS;
             List<char> orderedButtons = new List<char>();
             foreach (char c in order)
                 if (buttons.Contains(c))
