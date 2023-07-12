@@ -8,7 +8,7 @@ namespace BirdStudio
 {
     public abstract class FileManager
     {
-        private const string TITLE = "Bird Studio v1.2.3";
+        private const string TITLE = "Bird Studio v1.2.4";
         private MainWindow window;
         private string filePath;
         private bool unsavedChanges = false;

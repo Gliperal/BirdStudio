@@ -311,7 +311,7 @@ namespace BirdStudio
             List<TASInputLine> inputLines = getInputsData().getInputLines();
             for (int i = 0; i < inputLines.Count && newInputs.Count > 0; i++)
             {
-                if (inputLines[i] == null)
+                if (inputLines[i] == null || inputLines[i].frames == 0)
                     continue;
                 if (inputLines[i].Equals(newInputs[0]))
                     newInputs.RemoveAt(0);
