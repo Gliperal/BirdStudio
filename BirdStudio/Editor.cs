@@ -299,6 +299,20 @@ namespace BirdStudio
             target.renameBranch();
         }
 
+        public bool moveCaretAcrossDivider(InputsBlock currentFocus, int direction, int offset)
+        {
+            int i = panel.Children.IndexOf(currentFocus) + direction;
+            for (; i >= 0 && i < panel.Children.Count; i += direction)
+            {
+                if (panel.Children[i] is InputsBlock)
+                {
+                    ((InputsBlock)panel.Children[i]).receiveCaret(direction, offset);
+                    return true;
+                }
+            }
+            return false;
+        }
+
         protected override void _importFromFile(string tas)
         {
             if (tas == null)

@@ -177,6 +177,39 @@ namespace BirdStudio
                     _userEdit(deletePos, deleteLength, "");
                 e.Handled = true;
             }
+            if (e.Key == Key.Up && (CaretOffset <= Text.IndexOf('\n') || Text.IndexOf('\n') == -1))
+            {
+                editor.moveCaretAcrossDivider(this, -1, CaretOffset);
+                e.Handled = true;
+            }
+            if (e.Key == Key.Down && CaretOffset > Text.LastIndexOf('\n'))
+            {
+                int lineStart = Text.LastIndexOf('\n') + 1;
+                editor.moveCaretAcrossDivider(this, 1, CaretOffset - lineStart);
+                e.Handled = true;
+            }
+        }
+
+        public void receiveCaret(int direction, int offset)
+        {
+            int lineStart;
+            int lineEnd;
+            if (direction == 1)
+            {
+                lineStart = 0;
+                lineEnd = Text.IndexOf('\n');
+                if (lineEnd == -1)
+                    lineEnd = Text.Length;
+            }
+            else
+            {
+                lineStart = Text.LastIndexOf('\n') + 1;
+                lineEnd = Text.Length;
+            }
+            if (offset > lineEnd - lineStart)
+                offset = lineEnd - lineStart;
+            Select(lineStart + offset, 0);
+            Focus();
         }
 
         private void Editor_TextEntering(object sender, TextCompositionEventArgs e)
