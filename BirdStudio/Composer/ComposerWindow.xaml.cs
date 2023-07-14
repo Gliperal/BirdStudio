@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
+using System.Windows.Input;
 
 namespace BirdStudio
 {
@@ -67,41 +68,61 @@ namespace BirdStudio
             }
         }
 
-        private void Open_Click(object sender, RoutedEventArgs e)
+        private void NewCommand_Execute(object sender, RoutedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void OpenCommand_Execute(object sender, RoutedEventArgs e)
         {
             if (!_ensureFileLocation())
                 return;
             fileQueue.open(filesLocation.Text + "/");
         }
 
-        private void Save_Click(object sender, RoutedEventArgs e)
+        private void SaveCommand_Execute(object sender, RoutedEventArgs e)
         {
             fileQueue.save();
         }
 
-        private void AddFile_Click(object sender, RoutedEventArgs e)
+        private void SaveAsCommand_Execute(object sender, RoutedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void AddFileCommand_Execute(object sender, RoutedEventArgs e)
         {
             if (!_ensureFileLocation())
                 return;
             fileQueue.addFile(filesLocation.Text + "/");
         }
 
-        private void RemoveFile_Click(object sender, RoutedEventArgs e)
+        private void InsertFileCommand_Execute(object sender, RoutedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void RemoveFileCommand_Execute(object sender, RoutedEventArgs e)
         {
             fileQueue.removeFile();
         }
 
-        private void Force_Click(object sender, RoutedEventArgs e)
+        private void ForceBranchCommand_Execute(object sender, RoutedEventArgs e)
         {
             fileQueue.force();
         }
 
-        private void Play_Click(object sender, RoutedEventArgs e)
+        private void TCP_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = TcpManager.isConnected();
+        }
+
+        private void PlayTASCommand_Execute(object sender, RoutedEventArgs e)
         {
             fileQueue.queue(true);
         }
 
-        private void Queue_Click(object sender, RoutedEventArgs e)
+        private void QueueTASCommand_Execute(object sender, RoutedEventArgs e)
         {
             fileQueue.queue(false);
         }

@@ -4,28 +4,66 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BirdStudio"
+        xmlns:commands="clr-namespace:BirdStudio.Composer.Commands"
         mc:Ignorable="d"
         Title="Bird Composer v1.2.4" Height="800" Width="300">
+    <Window.CommandBindings>
+        <CommandBinding Command="New" Executed="NewCommand_Execute" />
+        <CommandBinding Command="Open" Executed="OpenCommand_Execute" />
+        <CommandBinding Command="Save" Executed="SaveCommand_Execute" />
+        <CommandBinding Command="SaveAs" Executed="SaveAsCommand_Execute" />
+        <CommandBinding
+            Command="commands:CustomCommands.AddFile"
+            Executed="AddFileCommand_Execute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.InsertFile"
+            Executed="InsertFileCommand_Execute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.RemoveFile"
+            Executed="RemoveFileCommand_Execute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.ForceBranch"
+            Executed="ForceBranchCommand_Execute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.PlayTAS"
+            Executed="PlayTASCommand_Execute"
+            CanExecute="TCP_CanExecute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.QueueTAS"
+            Executed="QueueTASCommand_Execute"
+            CanExecute="TCP_CanExecute"
+        />
+    </Window.CommandBindings>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBox x:Name="filesLocation" />
-        <local:FileQueue x:Name="fileQueue" Grid.Row="1" />
-        <Button Click="Open_Click" Grid.Row="2">Open TAS</Button>
-        <Button Click="Save_Click" Grid.Row="3">Save TAS</Button>
-        <Button Click="AddFile_Click" Grid.Row="4">Add File</Button>
-        <Button Click="RemoveFile_Click" Grid.Row="5">Remove File(s)</Button>
-        <Button Click="Force_Click" Grid.Row="6">Force/Unforce</Button>
-        <Button Click="Play_Click" Grid.Row="7">Play TAS</Button>
-        <Button Click="Queue_Click" Grid.Row="8">Queue TAS</Button>
+        <Menu Grid.Row="0">
+            <MenuItem Header="_File">
+                <MenuItem Header="_New" Command="New" />
+                <MenuItem Header="_Open" Command="Open" />
+                <MenuItem Header="_Save" Command="Save" />
+                <MenuItem Header="Save _As" Command="SaveAs" />
+            </MenuItem>
+            <MenuItem Header="_Queue">
+                <MenuItem Header="_Add File" Command="commands:CustomCommands.AddFile" />
+                <MenuItem Header="_Insert File" Command="commands:CustomCommands.InsertFile" />
+                <MenuItem Header="_Remove File" Command="commands:CustomCommands.RemoveFile" />
+                <MenuItem Header="_Force / Unforce Branch" Command="commands:CustomCommands.ForceBranch" />
+            </MenuItem>
+            <MenuItem Header="_Bird">
+                <MenuItem Header="_Play TAS" Command="commands:CustomCommands.PlayTAS" />
+                <MenuItem Header="_Queue TAS" Command="commands:CustomCommands.QueueTAS" />
+            </MenuItem>
+        </Menu>
+        <TextBox x:Name="filesLocation" Grid.Row="1" />
+        <local:FileQueue x:Name="fileQueue" Grid.Row="2" />
     </Grid>
 </Window>
