@@ -76,7 +76,11 @@ namespace BirdStudio
             string filename = lines[0].Trim();
             TreeViewBranch x = from(filename, rootDirectory);
             lines.RemoveAt(0);
-            x._parse(lines, 0, filename);
+            if (x.Foreground != Brushes.Red)
+                x._parse(lines, 0, filename);
+            else
+                while (lines.Count > 0 && Util.countLeadingWhitespace(lines[0]) > 0)
+                    lines.RemoveAt(0);
             return x;
         }
 

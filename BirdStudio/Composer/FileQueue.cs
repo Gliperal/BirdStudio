@@ -31,6 +31,7 @@ namespace BirdStudio
                 children.Clear();
                 while (Items.Count > 0)
                     Items.RemoveAt(0);
+                ErrorBox.clear();
                 while (lines.Count > 0)
                 {
                     TreeViewBranch child = TreeViewBranch.from(lines, tasFilesLocation);

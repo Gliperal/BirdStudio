@@ -31,11 +31,16 @@ namespace BirdStudio
             errorBox.ScrollToEnd();
         }
 
-        public static void ClearButton_Click(object sender, RoutedEventArgs e)
+        public static void clear()
         {
             errorBox.Text = "";
             errorBox.Visibility = Visibility.Collapsed;
             clearButton.Visibility = Visibility.Collapsed;
+        }
+
+        private static void ClearButton_Click(object sender, RoutedEventArgs e)
+        {
+            clear();
         }
     }
 }
