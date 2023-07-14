@@ -33,7 +33,6 @@ namespace BirdStudio
                     Items.RemoveAt(0);
                 while (lines.Count > 0)
                 {
-                    // TODO check for format errors
                     TreeViewBranch child = TreeViewBranch.from(lines, tasFilesLocation);
                     children.Add(child);
                     AddChild(child);

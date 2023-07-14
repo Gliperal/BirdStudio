@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows.Controls;
-using System.Windows.Forms;
 using System.Windows.Media;
 using System.Xml;
 
@@ -53,7 +52,7 @@ namespace BirdStudio
                 XmlDocument xml = new XmlDocument();
                 xml.LoadXml(tas);
                 if (xml.DocumentElement.Name != "tas")
-                    throw new Exception();
+                    throw new Exception("Not a tas file.");
                 EditorHeader header = new EditorHeader(xml.DocumentElement.Attributes);
                 Branch branch = Branch.fromXml(xml.DocumentElement, null);
                 TreeViewBranch x = new TreeViewBranch(null, filename, filename, branch);
@@ -61,8 +60,9 @@ namespace BirdStudio
                 x.setActive(true);
                 return x;
             }
-            catch
+            catch (Exception e)
             {
+                ErrorBox.reportError($"Error while parsing file {filename}: {e.Message}. File will be ignored.");
                 return new TreeViewBranch
                 {
                     Header = filename,
@@ -73,9 +73,10 @@ namespace BirdStudio
 
         public static TreeViewBranch from(List<string> lines, string rootDirectory)
         {
-            TreeViewBranch x = from(lines[0].Trim(), rootDirectory);
+            string filename = lines[0].Trim();
+            TreeViewBranch x = from(filename, rootDirectory);
             lines.RemoveAt(0);
-            x._parse(lines, 0);
+            x._parse(lines, 0, filename);
             return x;
         }
 
@@ -107,7 +108,7 @@ namespace BirdStudio
         }
 
         // starting from the current line, deal with all the upcoming lines that are deeper than indentLevel
-        private void _parse(List<string> lines, int indentLevel)
+        private void _parse(List<string> lines, int indentLevel, string filename)
         {
             if (lines.Count == 0)
                 return;
@@ -126,11 +127,11 @@ namespace BirdStudio
                     {
                         TreeViewBranch child = _findChildBranch(branchID);
                         child.parent.force(child, true);
-                        child._parse(lines, subIndentLevel);
+                        child._parse(lines, subIndentLevel, filename);
                     }
                     catch (FormatException e)
                     {
-                        MessageBox.Show("Ignoring error while parsing file: " + e.Message);
+                        ErrorBox.reportError($"Ignoring error while parsing file {filename}: {e.Message}");
                     }
                 }
                 else if (indent < subIndentLevel)

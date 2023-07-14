@@ -13,6 +13,7 @@ namespace BirdStudio
             InitializeComponent();
             string[] args = Environment.GetCommandLineArgs();
             string file = (args.Length > 1) ? args[1] : null;
+            ErrorBox.init(errorBox, clearErrorsButton);
             Thread t = new Thread(new ThreadStart(TalkWithGame));
             t.IsBackground = true;
             t.Start();
