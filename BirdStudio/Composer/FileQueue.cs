@@ -1,14 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Input;
 
 namespace BirdStudio
 {
     // TODO Would be nice to generalize FileManager so this can use it too
     public class FileQueue : System.Windows.Controls.TreeView
     {
+        public FileQueue()
+        {
+            PreviewKeyDown += FileQueue_PreviewKeyDown;
+        }
+
         List<TreeViewBranch> children = new List<TreeViewBranch>();
 
         public void open(string tasFilesLocation)
@@ -99,6 +104,12 @@ namespace BirdStudio
                 else
                     TcpManager.sendQueueReplayCommand(replayBuffer);
             }
+        }
+
+        private void FileQueue_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == Key.Back || e.Key == Key.Delete)
+                removeFile();
         }
     }
 }
