@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Forms;
 
@@ -18,11 +16,11 @@ namespace BirdStudio
         private string title;
         private string openFileFilter;
         private string saveFileFilter;
-        private MainWindow window;
+        private Window window;
         private string filePath;
         private bool unsavedChanges = false;
 
-        public FileManager(MainWindow window, string title, string openFileFilter, string saveFileFilter)
+        public FileManager(Window window, string title, string openFileFilter, string saveFileFilter)
         {
             this.window = window;
             this.title = title;

@@ -7,51 +7,44 @@ using System.Windows.Input;
 namespace BirdStudio
 {
     // TODO Would be nice to generalize FileManager so this can use it too
-    public class FileQueue : System.Windows.Controls.TreeView
+    public class FileQueue : FileManager
     {
-        public FileQueue()
+        public System.Windows.Controls.TreeView root;
+        public string tasFilesLocation;
+
+        public FileQueue(ComposerWindow window, System.Windows.Controls.TreeView root)
+            : base(window, "Bird Composer v1.3.0", "Text files (*.txt)|*.txt|All files (*.*)|*.*", "Text file (*.txt)|*.txt")
         {
-            PreviewKeyDown += FileQueue_PreviewKeyDown;
+            this.root = root;
+            root.PreviewKeyDown += FileQueue_PreviewKeyDown;
         }
 
-        public void open(string tasFilesLocation)
+        protected override ImportStatus _importFromFile(string file)
         {
-            using (OpenFileDialog openFileDialogue = new OpenFileDialog())
+            List<string> lines = (file != null)
+                ? File.ReadAllLines(file).ToList()
+                : new List<string>();
+            lines = lines.FindAll(line => line.Trim() != "");
+            while (root.Items.Count > 0)
+                root.Items.RemoveAt(0);
+            ErrorBox.clear();
+            while (lines.Count > 0)
             {
-                openFileDialogue.InitialDirectory = tasFilesLocation;
-                openFileDialogue.Filter = "Text files (*.txt)|*.txt|All files (*.*)|*.*";
-                openFileDialogue.RestoreDirectory = true;
-                if (openFileDialogue.ShowDialog() != DialogResult.OK)
-                    return;
-                string filepath = openFileDialogue.FileName;
-                List<string> lines = File.ReadAllLines(filepath).ToList();
-                lines = lines.FindAll(line => line.Trim() != "");
-                while (Items.Count > 0)
-                    Items.RemoveAt(0);
-                ErrorBox.clear();
-                while (lines.Count > 0)
-                {
-                    TreeViewBranch child = TreeViewBranch.from(lines, tasFilesLocation);
-                    Items.Add(child);
-                }
+                TreeViewBranch child = TreeViewBranch.from(lines, tasFilesLocation);
+                root.Items.Add(child);
             }
+            return ImportStatus.Success;
         }
 
-        public void save()
+        protected override string _exportToFile()
         {
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "Text file (*.txt)|*.txt";
-            saveFileDialog.ShowDialog();
-            if (saveFileDialog.FileName == "")
-                return;
-            string filename = saveFileDialog.FileName;
             string text = "";
-            foreach (TreeViewBranch child in Items)
+            foreach (TreeViewBranch child in root.Items)
                 text += child.toText();
-            File.WriteAllText(filename, text);
+            return text;
         }
 
-        public void addFile(string tasFilesLocation, int position=-1)
+        public void addFile(int position=-1)
         {
             using (OpenFileDialog openFileDialogue = new OpenFileDialog())
             {
@@ -64,44 +57,49 @@ namespace BirdStudio
                 string relpath = Path.GetRelativePath(tasFilesLocation, filepath).Replace('\\', '/');
                 TreeViewBranch child = TreeViewBranch.from(relpath, tasFilesLocation);
                 if (position == -1)
-                    Items.Add(child);
+                    root.Items.Add(child);
                 else
-                    Items.Insert(position, child);
+                    root.Items.Insert(position, child);
+                fileChanged();
             }
         }
 
-        public void insertFile(string tasFilesLocation)
+        public void insertFile()
         {
-            addFile(tasFilesLocation, Items.IndexOf(SelectedItem));
+            addFile(root.Items.IndexOf(root.SelectedItem));
         }
 
-        public void insertFileBelow(string tasFilesLocation)
+        public void insertFileBelow()
         {
-            addFile(tasFilesLocation, Items.IndexOf(SelectedItem) + 1);
+            addFile(root.Items.IndexOf(root.SelectedItem) + 1);
         }
 
         public void removeFile()
         {
-            Items.Remove(SelectedItem);
+            root.Items.Remove(root.SelectedItem);
+            fileChanged();
         }
 
         public void force()
         {
-            object selected = this.SelectedItem;
+            object selected = root.SelectedItem;
             if (selected is TreeViewBranch)
+            {
                 ((TreeViewBranch)selected).toggleForced();
+                fileChanged();
+            }
         }
 
         public void queue(bool loadFirst)
         {
-            foreach (TreeViewBranch child in Items)
+            foreach (TreeViewBranch child in root.Items)
             {
                 string text = child.branch.getText();
                 Inputs tas = new Inputs(text);
                 List<Press> presses = tas.toPresses();
                 Replay replay = new Replay(presses);
                 string replayBuffer = replay.writeString();
-                if (loadFirst && child == Items[0])
+                if (loadFirst && child == root.Items[0])
                     TcpManager.sendLoadReplayCommand(child.stage, replayBuffer, -1, null);
                 else
                     TcpManager.sendQueueReplayCommand(replayBuffer);

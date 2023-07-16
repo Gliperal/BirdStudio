@@ -77,7 +77,7 @@
             </MenuItem>
         </Menu>
         <TextBox x:Name="filesLocation" Grid.Row="1" />
-        <local:FileQueue x:Name="fileQueue" Grid.Row="2" />
+        <TreeView x:Name="fileQueueRoot" Grid.Row="2" />
         <TextBox x:Name="errorBox" Grid.Row="3" IsReadOnly="True" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" MaxHeight="200" />
         <Button x:Name="clearErrorsButton" Grid.Row="4">Clear Errors</Button>
     </Grid>

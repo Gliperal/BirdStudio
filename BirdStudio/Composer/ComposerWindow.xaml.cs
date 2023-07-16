@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
 
@@ -8,12 +9,19 @@ namespace BirdStudio
 {
     public partial class ComposerWindow : Window
     {
+        private FileQueue fileQueue;
+
         public ComposerWindow()
         {
             InitializeComponent();
             string[] args = Environment.GetCommandLineArgs();
             string file = (args.Length > 1) ? args[1] : null;
             ErrorBox.init(errorBox, clearErrorsButton);
+            fileQueue = new FileQueue(this, fileQueueRoot);
+            filesLocation.TextChanged += (object sender, TextChangedEventArgs e) =>
+            {
+                fileQueue.tasFilesLocation = filesLocation.Text + "/";
+            };
             Thread t = new Thread(new ThreadStart(TalkWithGame));
             t.IsBackground = true;
             t.Start();
@@ -71,14 +79,14 @@ namespace BirdStudio
 
         private void NewCommand_Execute(object sender, RoutedEventArgs e)
         {
-            throw new NotImplementedException();
+            fileQueue.neww();
         }
 
         private void OpenCommand_Execute(object sender, RoutedEventArgs e)
         {
             if (!_ensureFileLocation())
                 return;
-            fileQueue.open(filesLocation.Text + "/");
+            fileQueue.open();
         }
 
         private void SaveCommand_Execute(object sender, RoutedEventArgs e)
@@ -88,28 +96,28 @@ namespace BirdStudio
 
         private void SaveAsCommand_Execute(object sender, RoutedEventArgs e)
         {
-            throw new NotImplementedException();
+            fileQueue.saveAs(null);
         }
 
         private void AddFileCommand_Execute(object sender, RoutedEventArgs e)
         {
             if (!_ensureFileLocation())
                 return;
-            fileQueue.addFile(filesLocation.Text + "/");
+            fileQueue.addFile();
         }
 
         private void InsertFileCommand_Execute(object sender, RoutedEventArgs e)
         {
             if (!_ensureFileLocation())
                 return;
-            fileQueue.insertFile(filesLocation.Text + "/");
+            fileQueue.insertFile();
         }
 
         private void InsertFileBelowCommand_Execute(object sender, RoutedEventArgs e)
         {
             if (!_ensureFileLocation())
                 return;
-            fileQueue.insertFileBelow(filesLocation.Text + "/");
+            fileQueue.insertFileBelow();
         }
 
         private void RemoveFileCommand_Execute(object sender, RoutedEventArgs e)
