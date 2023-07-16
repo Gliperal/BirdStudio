@@ -144,5 +144,11 @@ namespace BirdStudio
         {
             fileQueue.queue(false);
         }
+
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            if (!fileQueue.permissionToClose())
+                e.Cancel = true;
+        }
     }
 }
