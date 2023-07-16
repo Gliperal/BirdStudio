@@ -95,7 +95,7 @@ namespace BirdStudio
                 File.AppendAllText("error.log", e.ToString() + "\n\n");
                 writeSuccess = true;
             }
-            catch (Exception e2) { }
+            catch (Exception) { }
             string message = "Unexpected error: " + e.Message +
                 (writeSuccess
                     ? ". Details written to error.log."

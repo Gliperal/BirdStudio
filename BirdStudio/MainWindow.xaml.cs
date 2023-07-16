@@ -14,8 +14,6 @@ namespace BirdStudio
     public partial class MainWindow : Window
     {
         private Editor editor;
-        private bool lCtrlDown;
-        private bool rCtrlDown;
 
         public MainWindow()
         {
@@ -87,9 +85,9 @@ namespace BirdStudio
             Replay replay;
             try
             {
-                replay = new Replay(replayBuffer, false);
+                replay = Replay.fromString(replayBuffer);
             }
-            catch (FormatException e) { return; }
+            catch (FormatException) { return; }
             List<Press> presses = replay.toPresses();
             Inputs newInputs = new Inputs(presses);
             editor.onReplaySaved(levelName, newInputs);

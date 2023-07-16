@@ -6,27 +6,39 @@ using System.Windows.Forms;
 
 namespace BirdStudio
 {
+    public enum ImportStatus
+    {
+        Success,
+        SuccessButCloseFile,
+        Failure,
+    }
+
     public abstract class FileManager
     {
-        private const string TITLE = "Bird Studio v1.2.4";
+        private string title;
+        private string openFileFilter;
+        private string saveFileFilter;
         private MainWindow window;
         private string filePath;
         private bool unsavedChanges = false;
 
-        public FileManager(MainWindow window)
+        public FileManager(MainWindow window, string title, string openFileFilter, string saveFileFilter)
         {
             this.window = window;
+            this.title = title;
+            this.openFileFilter = openFileFilter;
+            this.saveFileFilter = (saveFileFilter == null) ? openFileFilter : saveFileFilter;
         }
 
-        protected abstract void _importFromFile(string contents);
+        protected abstract ImportStatus _importFromFile(string filePath);
         protected abstract string _exportToFile();
 
         private void _updateWindowTitle()
         {
             if (filePath == null)
-                window.Title = TITLE;
+                window.Title = title;
             else
-                window.Title = (unsavedChanges ? "*" : "") + Util.filePathToFileName(filePath) + " - " + TITLE;
+                window.Title = (unsavedChanges ? "*" : "") + Util.filePathToFileName(filePath) + " - " + title;
         }
 
         private void _setTasFile(string path)
@@ -82,11 +94,11 @@ namespace BirdStudio
                 string gameDirectory = Util.getGameDirectory();
                 using (OpenFileDialog openFileDialogue = new OpenFileDialog())
                 {
-                    if (gameDirectory != null && File.Exists(gameDirectory + @"Replays\"))
-                        openFileDialogue.InitialDirectory = gameDirectory + @"Replays\";
+                    if (gameDirectory != null && File.Exists(gameDirectory + @"tas-files\"))
+                        openFileDialogue.InitialDirectory = gameDirectory + @"tas-files\";
                     else if (gameDirectory != null)
                         openFileDialogue.InitialDirectory = gameDirectory;
-                    openFileDialogue.Filter = "TAS files (*.tas)|*.tas|Replay files (*.txt)|*.txt|All files (*.*)|*.*";
+                    openFileDialogue.Filter = openFileFilter;
                     openFileDialogue.RestoreDirectory = true;
                     if (openFileDialogue.ShowDialog() == DialogResult.OK)
                         file = openFileDialogue.FileName;
@@ -95,31 +107,11 @@ namespace BirdStudio
                 }
             }
 
-            try
-            {
-                if (!file.EndsWith(".tas"))
-                {
-                    // replay file
-                    try
-                    {
-                        Replay replay = new Replay(file);
-                        List<Press> presses = replay.toPresses();
-                        Inputs inputs = new Inputs(presses);
-                        _importFromFile(inputs.toText("unknown", 0));
-                        _setTasFile(null);
-                        return;
-                    }
-                    catch (FormatException ex) { }
-                }
-                // tas file
-                string tas = File.ReadAllText(file);
-                _importFromFile(tas);
+            ImportStatus status = _importFromFile(file);
+            if (status == ImportStatus.Success)
                 _setTasFile(file);
-            }
-            catch (Exception e) // FormatException XmlException IOException
-            {
-                Util.logAndReportException(e);
-            }
+            else if (status == ImportStatus.SuccessButCloseFile)
+                _setTasFile(null);
         }
 
         public bool saveAs(string file)
@@ -127,7 +119,7 @@ namespace BirdStudio
             if (file == null)
             {
                 SaveFileDialog saveFileDialog = new SaveFileDialog();
-                saveFileDialog.Filter = "TAS file (*.tas)|*.tas";
+                saveFileDialog.Filter = saveFileFilter;
                 saveFileDialog.ShowDialog();
                 if (saveFileDialog.FileName == "")
                     return false;

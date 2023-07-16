@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System;
 using System.Xml;
 using System.Linq;
+using System.IO;
 
 namespace BirdStudio
 {
@@ -23,7 +24,8 @@ namespace BirdStudio
         private int playbackFrame = -1;
         private List<FrameAndBlock> blocksByStartFrame;
 
-        public Editor(MainWindow window, StackPanel panel, ScrollViewer scrollViewer, string initialFile = null) : base(window)
+        public Editor(MainWindow window, StackPanel panel, ScrollViewer scrollViewer, string initialFile = null)
+            : base(window, "Bird Studio v1.2.4", "TAS files (*.tas)|*.tas|Replay files (*.txt)|*.txt|All files (*.*)|*.*", "TAS file (*.tas)|*.tas")
         {
             this.panel = panel;
             this.scrollViewer = scrollViewer;
@@ -313,10 +315,8 @@ namespace BirdStudio
             return false;
         }
 
-        protected override void _importFromFile(string tas)
+        private void _import(string tas)
         {
-            if (tas == null)
-                tas = DEFAULT_FILE_TEXT;
             tas = tas.Replace("\r\n", "\n");
             if (!tas.Trim().StartsWith('<'))
                 tas = Util.convertOldFormatToNew(tas);
@@ -329,6 +329,39 @@ namespace BirdStudio
             _reloadComponents();
             tasEditedSinceLastWatch = true;
             _clearUndoStack();
+        }
+
+        protected override ImportStatus _importFromFile(string file)
+        {
+            if (file == null)
+            {
+                _import(DEFAULT_FILE_TEXT);
+                return ImportStatus.Success;
+            }
+            try
+            {
+                if (!file.EndsWith(".tas"))
+                {
+                    // replay file
+                    try
+                    {
+                        Replay replay = Replay.fromFile(file);
+                        List<Press> presses = replay.toPresses();
+                        Inputs inputs = new Inputs(presses);
+                        _import(inputs.toText("unknown", 0));
+                        return ImportStatus.SuccessButCloseFile;
+                    }
+                    catch (FormatException) { }
+                }
+                // tas file
+                _import(File.ReadAllText(file));
+                return ImportStatus.Success;
+            }
+            catch (Exception e) // FormatException XmlException IOException
+            {
+                Util.logAndReportException(e);
+                return ImportStatus.Failure;
+            }
         }
 
         protected override string _exportToFile()
@@ -346,7 +379,7 @@ namespace BirdStudio
                 {
                     // TODO update to a different level: would you like to open?
                     // no // yes (save current file) // yes (discard changes to current file)
-                    _importFromFile(newInputs.toText(levelName, 0));
+                    _import(newInputs.toText(levelName, 0));
                 }
             });
         }

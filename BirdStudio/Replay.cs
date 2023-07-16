@@ -37,9 +37,15 @@ namespace BirdStudio
             _loadInputs(" MN", lines[16]);
         }
 
-        public Replay(string file) : this(System.IO.File.ReadAllLines(file)) {}
+        public static Replay fromFile(string file)
+        {
+            return new Replay(System.IO.File.ReadAllLines(file));
+        }
 
-        public Replay(string buffer, bool _) : this(buffer.Split('\n')) {}
+        public static Replay fromString(string buffer)
+        {
+            return new Replay(buffer.Split('\n'));
+        }
 
         private void _loadInputs(string type, string inputsString)
         {

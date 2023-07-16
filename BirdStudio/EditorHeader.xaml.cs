@@ -54,7 +54,7 @@ namespace BirdStudio
                 float y = float.Parse(coords[1].Trim());
                 return new float[] { x, y };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }
