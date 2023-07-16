@@ -22,6 +22,7 @@ namespace BirdStudio
             {
                 fileQueue.tasFilesLocation = filesLocation.Text + "/";
             };
+            fileQueue.neww();
             Thread t = new Thread(new ThreadStart(TalkWithGame));
             t.IsBackground = true;
             t.Start();

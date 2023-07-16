@@ -25,7 +25,7 @@ namespace BirdStudio
         private List<FrameAndBlock> blocksByStartFrame;
 
         public Editor(MainWindow window, StackPanel panel, ScrollViewer scrollViewer, string initialFile = null)
-            : base(window, "Bird Studio v1.2.4", "TAS files (*.tas)|*.tas|Replay files (*.txt)|*.txt|All files (*.*)|*.*", "TAS file (*.tas)|*.tas")
+            : base(window, "Bird Studio v1.3.0", "TAS files (*.tas)|*.tas|Replay files (*.txt)|*.txt|All files (*.*)|*.*", "TAS file (*.tas)|*.tas")
         {
             this.panel = panel;
             this.scrollViewer = scrollViewer;

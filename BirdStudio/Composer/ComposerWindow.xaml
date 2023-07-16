@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:BirdStudio"
         xmlns:commands="clr-namespace:BirdStudio.Composer.Commands"
         mc:Ignorable="d"
-        Title="Bird Composer v1.2.4" Height="800" Width="300">
+        Title="Bird Composer" Height="800" Width="300">
     <Window.Resources>
         <ContextMenu x:Key="treeViewBranchContextMenu">
             <MenuItem Header="Insert file above" Command="commands:CustomCommands.InsertFile" />
