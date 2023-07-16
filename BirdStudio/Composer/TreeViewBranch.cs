@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Xml;
 
@@ -19,11 +20,14 @@ namespace BirdStudio
         public Branch branch;
         public bool active;
 
-        private TreeViewBranch() { }
+        private TreeViewBranch()
+        {
+            PreviewMouseRightButtonUp += OnRightClick;
+        }
 
         // TODO remove header ?
         // maybe I can remove both header and name even?
-        public TreeViewBranch(TreeViewBranchGroup parent, string name, string header, Branch branch)
+        public TreeViewBranch(TreeViewBranchGroup parent, string name, string header, Branch branch) : this()
         {
             this.parent = parent;
             this.name = name;
@@ -38,7 +42,6 @@ namespace BirdStudio
                     foreach (TreeViewBranch child in group.branches)
                         AddChild(child);
                 }
-            //_updateColors();
         }
 
         public static TreeViewBranch from(string filename, string rootDirectory)
@@ -227,6 +230,16 @@ namespace BirdStudio
                 return;
             bool on = !parent.isForcedBranch(this);
             parent.force(this, on);
+        }
+
+        public void OnRightClick(object sender, MouseButtonEventArgs e)
+        {
+            if (parent != null)
+                return;
+            ContextMenu cm = FindResource("treeViewBranchContextMenu") as ContextMenu;
+            cm.PlacementTarget = this;
+            cm.IsOpen = true;
+            this.IsSelected = true;
         }
     }
 }

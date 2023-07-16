@@ -7,6 +7,13 @@
         xmlns:commands="clr-namespace:BirdStudio.Composer.Commands"
         mc:Ignorable="d"
         Title="Bird Composer v1.2.4" Height="800" Width="300">
+    <Window.Resources>
+        <ContextMenu x:Key="treeViewBranchContextMenu">
+            <MenuItem Header="Insert file above" Command="commands:CustomCommands.InsertFile" />
+            <MenuItem Header="Insert file below" Command="commands:CustomCommands.InsertFileBelow" />
+            <MenuItem Header="Delete file" Command="commands:CustomCommands.RemoveFile" />
+        </ContextMenu>
+    </Window.Resources>
     <Window.CommandBindings>
         <CommandBinding Command="New" Executed="NewCommand_Execute" />
         <CommandBinding Command="Open" Executed="OpenCommand_Execute" />
@@ -19,6 +26,10 @@
         <CommandBinding
             Command="commands:CustomCommands.InsertFile"
             Executed="InsertFileCommand_Execute"
+        />
+        <CommandBinding
+            Command="commands:CustomCommands.InsertFileBelow"
+            Executed="InsertFileBelowCommand_Execute"
         />
         <CommandBinding
             Command="commands:CustomCommands.RemoveFile"

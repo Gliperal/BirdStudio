@@ -30,6 +30,12 @@ namespace BirdStudio.Composer.Commands
             new KeyGesture(Key.I, ModifierKeys.Control)
         );
 
+        public static RoutedUICommand InsertFileBelow = makeCommand(
+            "Insert File Below",
+            "InsertFileBelow",
+            null
+        );
+
         public static RoutedUICommand RemoveFile = makeCommand(
             "Remove File",
             "RemoveFile",

@@ -75,6 +75,11 @@ namespace BirdStudio
             addFile(tasFilesLocation, Items.IndexOf(SelectedItem));
         }
 
+        public void insertFileBelow(string tasFilesLocation)
+        {
+            addFile(tasFilesLocation, Items.IndexOf(SelectedItem) + 1);
+        }
+
         public void removeFile()
         {
             Items.Remove(SelectedItem);

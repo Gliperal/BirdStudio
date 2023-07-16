@@ -105,6 +105,13 @@ namespace BirdStudio
             fileQueue.insertFile(filesLocation.Text + "/");
         }
 
+        private void InsertFileBelowCommand_Execute(object sender, RoutedEventArgs e)
+        {
+            if (!_ensureFileLocation())
+                return;
+            fileQueue.insertFileBelow(filesLocation.Text + "/");
+        }
+
         private void RemoveFileCommand_Execute(object sender, RoutedEventArgs e)
         {
             fileQueue.removeFile();
