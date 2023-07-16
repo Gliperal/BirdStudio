@@ -14,8 +14,6 @@ namespace BirdStudio
             PreviewKeyDown += FileQueue_PreviewKeyDown;
         }
 
-        List<TreeViewBranch> children = new List<TreeViewBranch>();
-
         public void open(string tasFilesLocation)
         {
             using (OpenFileDialog openFileDialogue = new OpenFileDialog())
@@ -28,15 +26,13 @@ namespace BirdStudio
                 string filepath = openFileDialogue.FileName;
                 List<string> lines = File.ReadAllLines(filepath).ToList();
                 lines = lines.FindAll(line => line.Trim() != "");
-                children.Clear();
                 while (Items.Count > 0)
                     Items.RemoveAt(0);
                 ErrorBox.clear();
                 while (lines.Count > 0)
                 {
                     TreeViewBranch child = TreeViewBranch.from(lines, tasFilesLocation);
-                    children.Add(child);
-                    AddChild(child);
+                    Items.Add(child);
                 }
             }
         }
@@ -50,12 +46,12 @@ namespace BirdStudio
                 return;
             string filename = saveFileDialog.FileName;
             string text = "";
-            foreach (TreeViewBranch child in children)
+            foreach (TreeViewBranch child in Items)
                 text += child.toText();
             File.WriteAllText(filename, text);
         }
 
-        public void addFile(string tasFilesLocation)
+        public void addFile(string tasFilesLocation, int position=-1)
         {
             using (OpenFileDialog openFileDialogue = new OpenFileDialog())
             {
@@ -67,20 +63,21 @@ namespace BirdStudio
                 string filepath = openFileDialogue.FileName;
                 string relpath = Path.GetRelativePath(tasFilesLocation, filepath).Replace('\\', '/');
                 TreeViewBranch child = TreeViewBranch.from(relpath, tasFilesLocation);
-                children.Add(child);
-                AddChild(child);
+                if (position == -1)
+                    Items.Add(child);
+                else
+                    Items.Insert(position, child);
             }
+        }
+
+        public void insertFile(string tasFilesLocation)
+        {
+            addFile(tasFilesLocation, Items.IndexOf(SelectedItem));
         }
 
         public void removeFile()
         {
-            foreach (TreeViewBranch child in children)
-                if (child == this.SelectedItem)
-                {
-                    children.Remove(child);
-                    Items.Remove(child);
-                    break;
-                }
+            Items.Remove(SelectedItem);
         }
 
         public void force()
@@ -92,14 +89,14 @@ namespace BirdStudio
 
         public void queue(bool loadFirst)
         {
-            foreach (TreeViewBranch child in children)
+            foreach (TreeViewBranch child in Items)
             {
                 string text = child.branch.getText();
                 Inputs tas = new Inputs(text);
                 List<Press> presses = tas.toPresses();
                 Replay replay = new Replay(presses);
                 string replayBuffer = replay.writeString();
-                if (loadFirst && child == children.First())
+                if (loadFirst && child == Items[0])
                     TcpManager.sendLoadReplayCommand(child.stage, replayBuffer, -1, null);
                 else
                     TcpManager.sendQueueReplayCommand(replayBuffer);

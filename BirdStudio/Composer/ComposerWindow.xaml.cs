@@ -100,7 +100,9 @@ namespace BirdStudio
 
         private void InsertFileCommand_Execute(object sender, RoutedEventArgs e)
         {
-            throw new NotImplementedException();
+            if (!_ensureFileLocation())
+                return;
+            fileQueue.insertFile(filesLocation.Text + "/");
         }
 
         private void RemoveFileCommand_Execute(object sender, RoutedEventArgs e)
